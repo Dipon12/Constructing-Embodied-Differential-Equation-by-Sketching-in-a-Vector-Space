@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drawing Tablet</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src = "lib/jquery.min.js"></script>
+  <script src = "lib/fabric.min.js"></script>
+</head>
+
+<body>
+  
+  <div id="canvas-container">
+    <canvas id="c"></canvas>
+  </div>
+  
+  <div class="dt-control-container">
+    <div class="dt-tools-container">
+      <img src="./assets/pencil.svg" title="Brush" id="pencil" alt="" />
+    </div>
+    <div class="dt-tools-container">
+      <img src="./assets/highlighter.svg" title="Highlighter" id="highlighter" alt="" />
+    </div>
+    <div class="dt-tools-container">
+      <img src="./assets/eraser.png" title="Eraser" id="eraser" alt="" />
+    </div>
+    <div class="dt-tools-container" style="margin-right: 0.8rem">
+      <img src="./assets/clear-all.png" title="clear" id="clear" alt="" />
+    </div>
+
+    <div class="dt-tools-container">
+      <img src="./assets/x1.png" title="dx" id="dx" alt=""/>
+    </div>
+
+    
+
+    <div class="dt-tools-container">
+      <select id="shape-selector">
+        <option value="Shape Select" selected>Select Shape</option>
+          <option value="rectangle">Rectangle</option>
+          <option value="circle">Circle</option>
+          <option value="triangle">Triangle</option>
+          <option value="ellipse">Ellipse</option>
+          <option value="polygon">Polygon</option>
+      </select>
+       <!-- Button to trigger drawing -->
+    </div>
+    
+    <div class="dt-tools-container">
+      <button id="stop-drawing">Stop Drawing</button>
+    </div>
+  
+
+    
+    <input type="number" min="1" max="100" id="size" value="3" />
+    
+
+    <div class="dt-dc-container">
+      <div class="dt-default-colors" data-color="#ffffff">
+        <div></div>
+      </div>
+      <div class="dt-default-colors" data-color="#f24822">
+        <div></div>
+      </div>
+      <div class="dt-default-colors" data-color="#ffa629">
+        <div></div>
+      </div>
+      <div class="dt-default-colors" data-color="#ffcd29">
+        <div></div>
+      </div>
+      <div class="dt-default-colors" data-color="#14ae5c">
+        <div></div>
+      </div>
+      <div class="dt-default-colors" data-color="#0d99ff">
+        <div></div>
+      </div>
+      <div class="dt-default-colors" data-color="#9747ff">
+        <div></div>
+      </div>
+    </div>
+
+    <div class="dt-cp-container">
+      <label for="dtPicker" class="dt-color-picker">
+        <input id="dtPicker" type="color" style="visibility: hidden; opacity: 0; width: 0; height: 0" />
+      </label>
+    </div>
+
+    <div class="dt-undo-redo-container">
+      <div class="">
+        <img src="./assets/undo.png" title="Undo (Ctrl + Z)" id="undo" alt="" />
+      </div>
+      <div class="">
+        <img src="./assets/redo.png" title="Redo (Ctrl + Y)" id="redo" alt="" />
+      </div>
+    </div>
+    <div class="dt-download-container">
+      <img src="./assets/download.png" title="Download (Ctrl + E)" id="download" alt="" />
+    </div>
+  </div>
+  
+  
+  <script src = "app.js"></script>
+
+</body>
+
+</html>
