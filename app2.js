@@ -1,677 +1,562 @@
-const type = {
-    pencil: "pencil",
-    eraser: "eraser",
-    highlighter: "highlighter",
-    dx: "dx",
-  };
+var canvas = new fabric.Canvas('c',{
+    width: window.outerWidth,
+    height: window.outerHeight,
+    backgroundColor: '#181818',
+    selectionColor: 'rgba(100,100,100,0.3)',
+    selectionLineWidth: 2,
+    viewportTransform: [1, 0, 0, 1, 0, 0],
+  });
   
+  // Set the background color of the canvas
+  canvas.renderAll();
   
-  class DrawingTablet {\
+  var rect = new fabric.Rect({
+    left: 100,
+    top: 100,
+    fill: 'red',
+    width: 200,
+    height: 200
+  });
+  
+  // "add" rectangle onto canvas
+  
+  canvas.add(rect);
+  console.log(rect.aCoords.tl.x)
 
-    #canvas;
-    #fabricCanvas;
-    
-    #CONSTANTS = {
-      DATA_KEY: "paths",
-    };
-  
-    #isDrawing = false;
-    #paths = [];
-    #dxPaths = [];
-    #rzTimeout;
-    #redo = [];
-  
-    #opts = {
-      width: 600,
-      height: 600,
-      size: undefined,
-      bg: "#167e60",
-      color: "#000000",
-      brushSize: 2,
-      logs: false,
-      fullSize: false,
-      fullWidth: false,
-      fullHeight: false,
-      fullscreen: false,
-      lineCap: "round",
-      lineJoin: "round",
-      overflow: "hidden",
-      scale: 1,
-      autosave: true,
-    };
-  
-    brushType = "pencil";
-  
+  var pointsStat = [
+    { x: 30, y: 50 },
+    { x: 0, y: 0 },
+    { x: 60, y: 0 },
+ ];
+ 
+ // Initiating a polyline object
+ var polyline = new fabric.Polygon(pointsStat, {
+    left: 100,
+    top: 40,
+    fill: "white",
+    strokeWidth: 4,
+    stroke: "green",
+    strokeDashArray: [10,5]
+ });
+ 
+ // Adding it to the canvas
+ canvas.add(polyline);
 
-    #isDrawing = false;
-    #paths = [];
-    #dxPaths = [];
-    #rzTimeout;
-    #redo = [];
-  
-    #opts = {
-      width: 600,
-      height: 600,
-      size: undefined,
-      bg: "#167e60",
-      color: "#000000",
-      brushSize: 2,
-      logs: false,
-      fullSize: false,
-      fullWidth: false,
-      fullHeight: false,
-      fullscreen: false,
-      lineCap: "round",
-      lineJoin: "round",
-      overflow: "hidden",
-      scale: 1,
-      autosave: true,
-    };
-  
-    brushType = type.pencil;
-  
-    constructor(element, opts) {
-        this.#opts = { ...this.#opts, ...opts };
-    
-        this.#initializeContainer(element);
-        this.#initializeOptions();
-        this.#initializeCanvas();
-        this.drawFromSaved();
-        
-        // Fabric.js event listeners
-        this.#fabricCanvas.on('mouse:down', this.#handleStart);
-        this.#fabricCanvas.on('mouse:move', this.#handleMove);
-        document.addEventListener('mouseup', this.#handleEnd);
-    
-        this.#fabricCanvas.on('touch:start', this.#handleStart);
-        this.#fabricCanvas.on('touch:move', this.#handleMove);
-        document.addEventListener('touchend', this.#handleEnd);
-    
-        document.addEventListener('keydown', this.#handleKeypress);
-    
-        window.addEventListener('resize', this.#handleResize);
-        this.#log('Events initialized');
+ canvas.renderAll();
+
+/*
+ function drawGrid() {
+    var zoom = canvas.getZoom();
+    var gridSize = 150; // size of the larger grid
+    var finerGridSize = gridSize / 3; // size of the finer grid
+    var vp = canvas.viewportTransform;
+    var width = canvas.getWidth() / zoom;
+    var height = canvas.getHeight() / zoom;
+
+    var xOffset = Math.abs(vp[4] / zoom);
+    var yOffset = Math.abs(vp[5] / zoom);
+
+    // Calculate where the grid should start drawing to ensure it covers left and top
+    var startX = -xOffset % gridSize;
+    var startY = -yOffset % gridSize;
+    var totalWidth = xOffset + width;
+    var totalHeight = yOffset + height;
+
+    // Clear existing grid lines if any
+    canvas.getObjects('line').forEach(function(line) {
+        if (line.grid) canvas.remove(line);
+    });
+
+    // Draw main grid
+    for (var i = startX; i < totalWidth; i += gridSize) {
+        var vertical = new fabric.Line([i, 0, i, totalHeight], {
+            stroke: '#ccc', strokeWidth: 1, selectable: false, opacity: 0.2, grid: true
+        });
+        canvas.add(vertical);
+        canvas.sendToBack(vertical);
     }
+    for (var j = startY; j < totalHeight; j += gridSize) {
+        var horizontal = new fabric.Line([0, j, totalWidth, j], {
+            stroke: '#ccc', strokeWidth: 1, selectable: false, opacity: 0.2, grid: true
+        });
+        canvas.add(horizontal);
+        canvas.sendToBack(horizontal);
+    }
+
+    // Draw finer grid if zoomed in
+    if (zoom > 1) {
+        for (var x = startX; x < totalWidth; x += finerGridSize) {
+            var fineVertical = new fabric.Line([x, 0, x, totalHeight], {
+                stroke: '#ccc', strokeWidth: 0.5, selectable: false, opacity: 0.1, grid: true
+            });
+            canvas.add(fineVertical);
+            canvas.sendToBack(fineVertical);
+        }
+        for (var y = startY; y < totalHeight; y += finerGridSize) {
+            var fineHorizontal = new fabric.Line([0, y, totalWidth, y], {
+                stroke: '#ccc', strokeWidth: 0.5, selectable: false, opacity: 0.1, grid: true
+            });
+            canvas.add(fineHorizontal);
+            canvas.sendToBack(fineHorizontal);
+        }
+    }
+}
+
+  
+  
+  // Initial grid draw
+  drawGrid();
+
+
+  canvas.on('mouse:wheel', function(opt) {
+    var delta = opt.e.deltaY;
+    var zoom = canvas.getZoom();
+    zoom *= 0.999 ** delta;
+    if (zoom > 20) zoom = 20;
+    if (zoom < 0.1) zoom = 0.1;
+
+    // Zoom into cursor rather than center of canvas
+    canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+
+    drawGrid(); // Redraw the grid based on new zoom level
+    opt.e.preventDefault();
+    opt.e.stopPropagation();
+});
+
+window.addEventListener('resize', function() {
+    var newWidth = window.outerWidth;
+    var newHeight = window.outerHeight;
+    if (canvas.getWidth() !== newWidth || canvas.getHeight() !== newHeight) {
+        canvas.setWidth(newWidth);
+        canvas.setHeight(newHeight);
+        canvas.calcOffset();  // Recalculate the offset of the canvas element
+        drawGrid();           // Redraw grid to fit new size
+    }
+});
+*/
+
+function drawInitialGrid() {
+    var gridSize = 150; // size of the larger grid
+    var finerGridSize = gridSize / 3; // size of the finer grid
+
+    // Assume users won't zoom out more than 4x the initial canvas size
+    var extendedWidth = canvas.getWidth() * 50;
+    var extendedHeight = canvas.getHeight() * 50;
+
+    // Main grid lines
+    for (var i = -extendedWidth; i <= extendedWidth; i += gridSize) {
+        var vertical = new fabric.Line([i, -extendedHeight, i, extendedHeight], {
+            stroke: '#ccc', strokeWidth: 1, selectable: false, opacity: 0.2, class: 'mainGrid'
+        });
+        canvas.add(vertical);
+    }
+    for (var j = -extendedHeight; j <= extendedHeight; j += gridSize) {
+        var horizontal = new fabric.Line([-extendedWidth, j, extendedWidth, j], {
+            stroke: '#ccc', strokeWidth: 1, selectable: false, opacity: 0.2, class: 'mainGrid'
+        });
+        canvas.add(horizontal);
+    }
+
+    // Finer grid lines if needed
+    for (var x = -extendedWidth; x <= extendedWidth; x += finerGridSize) {
+        var fineVertical = new fabric.Line([x, -extendedHeight, x, extendedHeight], {
+            stroke: '#ccc', strokeWidth: 0.5, selectable: false, opacity: 0.1, class: 'fineGrid'
+        });
+        canvas.add(fineVertical);
+    }
+    for (var y = -extendedHeight; y <= extendedHeight; y += finerGridSize) {
+        var fineHorizontal = new fabric.Line([-extendedWidth, y, extendedWidth, y], {
+            stroke: '#ccc', strokeWidth: 0.5, selectable: false, opacity: 0.1, class: 'fineGrid'
+        });
+        canvas.add(fineHorizontal);
+    }
+}
+
+canvas.on('mouse:wheel', function(opt) {
+    var delta = opt.e.deltaY;
+    var zoom = canvas.getZoom();
+    zoom *= 0.999 ** delta;
+    if (zoom > 20) zoom = 20;
+    // Change the minimum zoom level to 0.25
+    if (zoom < 0.25) zoom = 0.25;
+
+    canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+
+    // Update grid line thickness based on zoom
+    canvas.getObjects().forEach(function(obj) {
+        if (obj.class === 'mainGrid' || obj.class === 'fineGrid') {
+            obj.strokeWidth = obj.class === 'mainGrid' ? 1 / zoom : 0.5 / zoom;
+        }
+    });
+
+    canvas.requestRenderAll();
+    opt.e.preventDefault();
+    opt.e.stopPropagation();
+});
+
+// Initial setup
+drawInitialGrid();
+
+window.addEventListener('resize', function() {
+    canvas.setWidth(window.innerrWidth);
+    canvas.setHeight(window.innerHeight);
+    // Consider redrawing grid if necessary due to significantly increased size
+});
+
+
+
+
+
+
     
-  
-    #handleKeypress = (e) => {
-        if (e.ctrlKey && e.code === "KeyZ") {
-          this.#fabricCanvas.undo(); // Fabric.js equivalent for undo
-        }
-        if (e.ctrlKey && e.code === "KeyY") {
-          this.#fabricCanvas.redo(); // Fabric.js equivalent for redo
-        }
-        if (e.ctrlKey && e.code === "KeyS") {
-          e.preventDefault();
-          this.save(); // Assuming the save function is defined elsewhere
-        }
-      
-        if (e.ctrlKey && e.code === "KeyE") {
-          e.preventDefault();
-          this.download(); // Assuming the download function is defined elsewhere
-        }
-      };
-      
-  
-      #getBrush() {
-        return {
-          color: this.#opts.color,
-          bg: this.#opts.bg,
-          brushSize: this.#opts.brushSize,
-          lineCap: this.#opts.lineCap,
-          lineJoin: this.#opts.lineJoin,
-          setBrush: (fabricCanvas) => {
-            fabricCanvas.freeDrawingBrush.color = this.#opts.color;
-            fabricCanvas.freeDrawingBrush.width = this.#opts.brushSize;
-            fabricCanvas.freeDrawingBrush.strokeLineCap = this.#opts.lineCap;
-            fabricCanvas.freeDrawingBrush.strokeLineJoin = this.#opts.lineJoin;
-          }
-        };
-      }
-      
-  
-      #handleStart = (e) => {
-        e.preventDefault();
-        if (e.button === 1 || e.button === 0 || e.touches) { // e.button instead of e.which for compatibility with Fabric.js
-          this.#log("Drawing Started");
-          this.#isDrawing = true;
-          
-          const pointer = this.#fabricCanvas.getPointer(e.e); // Get pointer coordinates using Fabric.js
-          const brush = this.#getBrush();
-      
-          this.#paths.push([[pointer.x, pointer.y, brush]]);
-      
-          if (this.brushType === "dx") {
-            this.#dxPaths.push([[pointer.x, pointer.y]]);
-          }
-      
-          this.#draw();
-        }
-      };
-      
-  
-      #handleMove = (e) => {
-        e.preventDefault();
-        const pointer = this.#fabricCanvas.getPointer(e.e);
-        const coords = [pointer.x, pointer.y];
-      
-        if (this.#isDrawing) {
-          this.#paths[this.#paths.length - 1].push(coords);
-          if (this.brushType === "dx") {
-            this.#dxPaths[this.#dxPaths.length - 1].push(coords);
-          }
-      
-          this.#draw();
-        }
-      };
-      
+
     
+
+     
   
-      #handleEnd = () => {
-        if (this.#isDrawing) {
-          this.#log("Drawing End");
-          if (this.#opts.autosave) {
-            this.save();
-            this.#log("Auto Saved");
-          }
-        }
-      
-        if (this.#dxPaths.length >= 2) {
-          // Get the last two paths
-          const lastPath = this.#dxPaths[this.#dxPaths.length - 1];
-          const secondLastPath = this.#dxPaths[this.#dxPaths.length - 2];
-          
-          // Calculate centroids
-          const centroidLast = this.#calculateCentroid(lastPath);
-          const centroidSecondLast = this.#calculateCentroid(secondLastPath);
-          const dxDistance = this.#calculateDistance(centroidLast, centroidSecondLast);
-          
-          console.log("Centroid of the last path:", centroidLast);
-          console.log("Centroid of the second last path:", centroidSecondLast);
-          console.log("Distance:", dxDistance);
-        }
-      
-        this.#isDrawing = false;
-        this.#fabricCanvas.off('mouse:move'); // Remove the move event listener
-        this.#fabricCanvas.off('mouse:up'); // Remove the up event listener
-      };
-      
-  
-      #handleResize = () => {
-        if (this.#rzTimeout) {
-          window.clearTimeout(this.#rzTimeout);
-          this.#rzTimeout = null;
-        }
-        this.#rzTimeout = setTimeout(() => {
-          const { width: elWidth, height: elHeight } = this.container.getBoundingClientRect();
-          if (this.#opts.fullscreen) {
-            this.#opts.width = window.innerWidth;
-            this.#opts.height = window.innerHeight;
-          } else if (this.#opts.fullSize) {
-            this.#opts.width = elWidth;
-            this.#opts.height = elHeight;
-          } else if (this.#opts.fullWidth) {
-            this.#opts.width = elWidth;
-          } else if (this.#opts.fullHeight) {
-            this.#opts.height = elHeight;
-          }
-          this.#initializeCanvasSize();
-          this.#draw();
-        }, 200);
-      };
-      
-      #initializeContainer(element) {
-        this.container = document.body;
-        if (element) {
-          if (typeof element === "string") {
-            this.container = document.querySelector(element);
-            if (!this.container) {
-              throw new Error("Element not found. Please check your selector.");
+ // Get the select element
+var shapeSelector = document.getElementById('shape-selector');
+
+// Add an event listener to handle changes
+shapeSelector.addEventListener('change', function() {
+    var selectedShape = this.value; // 'this' refers to the select element, and 'value' gives the currently selected option's value
+    console.log("Selected shape: " + selectedShape); // Log the selected shape
+
+    // Now you can call any function to act on the selected shape
+    // For instance, prepare to draw the selected shape on a Fabric.js canvas
+    isDrawing = true;
+    startDrawing(selectedShape);
+});
+
+
+let currentShape;
+let isDrawing = false;
+let shape;
+let originX, originY;
+let rectShape = [];
+let circShape = [];
+let ellipseShape = [];
+let triangleShape = [];
+let objectContainer = [];
+
+
+function startDrawing(shapeType) {
+    currentShape = shapeType;
+
+    if (isDrawing){
+        canvas.on('mouse:down', function(o) {
+            isDrawing = true;
+            let pointer = canvas.getPointer(o.e);
+            originX = pointer.x;
+            originY = pointer.y;
+    
+            if (shapeType === 'rectangle') {
+                shape = new fabric.Rect({
+                    left: originX,
+                    top: originY,
+                    color: '#ffa800',
+                    originX: 'left',
+                    originY: 'top',
+                    width: 0,
+                    height: 0,
+                    fill: 'rgba(255,168,0, 0.9)', // Semi-transparent
+                    selectable: true
+                });
+            } else if (shapeType === 'circle') {
+                shape = new fabric.Circle({
+                    left: originX,
+                    top: originY,
+                    originX: 'left',
+                    originY: 'top',
+                    radius: 1,
+                    fill: 'rgba(0, 255, 0, 0.5)' // Semi-transparent
+                });
+            } else if (shapeType === 'ellipse') {
+                shape = new fabric.Ellipse({
+                    left: originX,
+                    top: originY,
+                    originX: 'left',
+                    originY: 'top',
+                    rx: 1,
+                    ry: 1,
+                    fill: 'rgba(0, 0, 255, 0.5)' // Semi-transparent
+                });
             }
-          } else if (element.tagName) {
-            this.container = element;
-          } else {
-            console.error("Invalid element");
-          }
-        }
-        this.container.style.overflow = this.#opts.overflow;
-        this.#log("Container Initialized");
-      }
-      
-      #initializeCanvasSize() {
-        this.#fabricCanvas.setWidth(this.#opts.width);
-        this.#fabricCanvas.setHeight(this.#opts.height);
-        this.#fabricCanvas.calcOffset();
-      }
-      
-  
-      #initializeOptions() {
-        if (this.#opts.size) {
-          this.#opts.width = this.#opts.size;
-          this.#opts.height = this.#opts.size;
-        }
-        if (this.#opts.fullscreen) {
-          this.#opts.width = window.innerWidth;
-          this.#opts.height = window.innerHeight;
-        }
-        const { width: elWidth, height: elHeight } = this.container.getBoundingClientRect();
-        if (this.#opts.fullSize) {
-          this.#opts.width = elWidth;
-          this.#opts.height = elHeight;
-        }
-        if (this.#opts.fullWidth) {
-          this.#opts.width = elWidth;
-        }
-        if (this.#opts.fullHeight) {
-          this.#opts.height = elHeight;
-        }
-      }
-      
-      #initializeCanvas() {
-        this.#fabricCanvas = new fabric.Canvas(null, {
-          width: this.#opts.width,
-          height: this.#opts.height,
-          backgroundColor: this.#opts.bg,
+            // More shapes can be added here similarly
+            canvas.add(shape);
         });
-        this.container.appendChild(this.#fabricCanvas.getElement());
-        this.#log("Canvas initialized");
-      }
-      
-      #initializeCanvasSize() {
-        this.#fabricCanvas.setWidth(this.#opts.width);
-        this.#fabricCanvas.setHeight(this.#opts.height);
-        this.#fabricCanvas.calcOffset();
-      }
-      
-  
-      #coordinates(e) {
-        if (e.touches && e.touches.length > 0) {
-          return [
-            e.touches[0].clientX - this.#fabricCanvas._offset.left,
-            e.touches[0].clientY - this.#fabricCanvas._offset.top,
-          ];
-        }
-        return [
-          e.clientX - this.#fabricCanvas._offset.left,
-          e.clientY - this.#fabricCanvas._offset.top,
-        ];
-      }
-      
-      #draw() {
-        this.clearOnlyScreen();
-        this.#drawPath();
-      }
-      
-      #drawPath() {
-        for (let i = 0; i < this.#paths.length; i++) {
-          const line = this.#paths[i];
-          const startPath = line[0];
-          const pathData = [];
-      
-          for (let j = 0; j < line.length; j++) {
-            pathData.push({ x: line[j][0], y: line[j][1] });
-          }
-      
-          const path = new fabric.Path(pathData.map(p => `L ${p.x} ${p.y}`).join(' ').replace(/^L/, 'M'), {
-            stroke: startPath[2].color,
-            strokeWidth: startPath[2].brushSize,
-            fill: null,
-            strokeLineCap: startPath[2].lineCap,
-            strokeLineJoin: startPath[2].lineJoin,
-            selectable: false,
-          });
-      
-          this.#fabricCanvas.add(path);
-        }
-      }
-      
-  
-    #log(message, opts) {
-      const o = {
-        icon: true,
-        color: "#0cc0e4",
-        disableColor: false,
-        logs: this.#opts.logs,
-        ...opts,
-      };
-  
-      if (o.logs) {
-        if (typeof message !== "string") {
-          console.log(message);
-          return;
-        }
-        if (o.icon) {
-          message = `ⓘ ${message}`;
-        }
-        if (!o.disableColor) {
-          message = `%c${message}`;
-        }
-        console.log(message, `color: ${o.color}`);
-      }
+    
+        canvas.on('mouse:move', function(o) {
+            if (!isDrawing) return;
+    
+            let pointer = canvas.getPointer(o.e);
+            let x = Math.min(pointer.x, originX),
+                y = Math.min(pointer.y, originY),
+                width = Math.abs(pointer.x - originX),
+                height = Math.abs(pointer.y - originY);
+    
+            if (shapeType === 'rectangle') {
+                shape.set({ left: x, top: y, width: width, height: height });
+            } else if (shapeType === 'circle') {
+                let radius = Math.max(width, height) / 2;
+                shape.set({ left: originX, top: originY, radius: radius });
+                shape.setCoords(); // To update circle's position properly
+            } else if (shapeType === 'ellipse') {
+                shape.set({ left: originX, top: originY, rx: width / 2, ry: height / 2 });
+                shape.setCoords(); // To update ellipse's position properly
+            }
+    
+            canvas.renderAll();
+        });
+    
+        canvas.on('mouse:up', function() {
+            isDrawing = false;
+            
+            objectContainer.push(shape);
+            /*
+            if (currentShape === 'rectangle'){
+                rectShape.push(shape);
+                console.log("New Rectangle Added");
+                console.log(shape.type);
+                console.log(shape.getCenterPoint().x);
+            } else if (currentShape === 'circle') {
+                circShape.push(shape);
+                console.log("New Circle Added");
+            } else if (shapeType === 'ellipse') {
+                ellipseShape.push(shape);
+            }*/
+        });
+
     }
+    
+}
+
+
   
-  
-    #calculateCentroid(vertices) {
-      let centroid = { x: 0, y: 0 };
-      let signedArea = 0;
-      let x0 = 0; // Current vertex X
-      let y0 = 0; // Current vertex Y
-      let x1 = 0; // Next vertex X
-      let y1 = 0; // Next vertex Y
-      let a = 0;  // Partial signed area
-  
-      // For all vertices except last
-      for (let i = 0; i < vertices.length - 1; ++i) {
-          x0 = vertices[i][0];  // Access X of current vertex
-          y0 = vertices[i][1];  // Access Y of current vertex
-          x1 = vertices[i + 1][0];  // Access X of next vertex
-          y1 = vertices[i + 1][1];  // Access Y of next vertex
-          a = x0 * y1 - x1 * y0;
-          signedArea += a;
-          centroid.x += (x0 + x1) * a;
-          centroid.y += (y0 + y1) * a;
-      }
-  
-      // Do last vertex separately to avoid if inside loop
-      x0 = vertices[vertices.length - 1][0];  // Access X of last vertex
-      y0 = vertices[vertices.length - 1][1];  // Access Y of last vertex
-      x1 = vertices[0][0];  // Access X of first vertex
-      y1 = vertices[0][1];  // Access Y of first vertex
-      a = x0 * y1 - x1 * y0;
-      signedArea += a;
-      centroid.x += (x0 + x1) * a;
-      centroid.y += (y0 + y1) * a;
-  
-      signedArea *= 0.5;
-      centroid.x /= (6 * signedArea);
-      centroid.y /= (6 * signedArea);
-  
-      return centroid;
+let handleEvents = true;
+
+// Panning Function 
+function startPan(event) {
+    if (event.button != 2) {  // Right click check
+        return;
     }
-  
-  
-    #calculateDistance(centroid1, centroid2) {
-      const xDiff = centroid2.x - centroid1.x;
-      const yDiff = centroid2.y - centroid1.y;
-      return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+    var x0 = event.screenX,
+        y0 = event.screenY;
+
+    function continuePan(event) {
+        var x = event.screenX,
+            y = event.screenY;
+        canvas.relativePan({ x: x - x0, y: y - y0 });
+        x0 = x;
+        y0 = y;
     }
-  
-    log = (message) => {
-        return this.#log(message, { color: "yellow", logs: true });
-      };
-      
-      set bg(color) {
-        this.#opts.bg = color;
-        this.#fabricCanvas.setBackgroundColor(this.#opts.bg, this.#fabricCanvas.renderAll.bind(this.#fabricCanvas));
-      }
-      
-      set brushSize(size) {
-        this.#opts.brushSize = size;
-        this.#fabricCanvas.freeDrawingBrush.width = size;
-      }
-      
-      get brushSize() {
-        return this.#opts.brushSize;
-      }
-      
-      set brushColor(color) {
-        if (this.brushType == type.highlighter) {
-          this.#opts.color = color + "55";
-        } else {
-          this.#opts.color = color;
+
+    function stopPan(event) {
+        $(window).off('mousemove', continuePan);
+        $(window).off('mouseup', stopPan);
+    }
+
+    $(window).mousemove(continuePan);
+    $(window).mouseup(stopPan);
+    $(window).contextmenu(cancelMenu);
+}
+
+function cancelMenu() {
+    $(window).off('contextmenu', cancelMenu);
+    return false;  // Prevents context menu from appearing
+}
+
+// Attaching the mousedown event to the upper canvas to handle panning
+$(canvas.upperCanvasEl).mousedown(startPan);
+
+
+
+
+/*
+var drawStopper = document.getElementById('stop-drawing');
+
+drawStopper.addEventListener('click', function() {
+    var selectedShape = this.value; // 'this' refers to the select element, and 'value' gives the currently selected option's value
+    isDrawing = false;
+
+    canvas.off("mouse:down");
+    canvas.off("mouse:move");
+    canvas.off("mouse:up"); 
+
+    console.log("Drawing Stopped!");
+    
+});
+*/
+
+document.getElementById('stop-drawing').addEventListener('click', shapeDrawingStopper);
+
+function shapeDrawingStopper(){
+    var selectedShape = this.value; // 'this' refers to the select element, and 'value' gives the currently selected option's value
+    isDrawing = false;
+
+    canvas.off("mouse:down");
+    canvas.off("mouse:move");
+    canvas.off("mouse:up"); 
+
+    console.log("Drawing Stopped!");
+}
+
+
+let polyPoints = [];
+let lasso;
+
+function startLasso() {
+    shapeDrawingStopper();
+    canvas.isDrawingMode = true;
+    canvas.freeDrawingBrush.width = 5;
+    canvas.freeDrawingBrush.color = 'white';
+    canvas.freeDrawingBrush.strokeDashArray = [15,10];
+
+    // Add path created event listener
+    function handlePathCreated(opt) {
+        var path = opt.path;
+        var pathData = path.path;
+        for (let segment of pathData) {
+            if (segment[0] === 'Q') { // Handles quadratic bezier curves
+                polyPoints.push({ x: segment[1], y: segment[2] }); // Control point
+                polyPoints.push({ x: segment[3], y: segment[4] }); // Endpoint
+            }
         }
-        this.#fabricCanvas.freeDrawingBrush.color = this.#opts.color;
-      }
-      
-      get brushColor() {
-        return this.#opts.color;
-      }
-      
-      get opts() {
-        return { ...this.#opts };
-      }
-      
-  
-      pencil = () => {
-        this.brushType = type.pencil;
-        this.#opts.lineCap = "round";
-        this.#opts.lineJoin = "round";
+        removePencilStrokes();
+    }
+
+    canvas.on('path:created', handlePathCreated);
+
+    // Ensure to remove event listener after drawing is done
+    canvas.on('mouse:up', function() {
+        canvas.off('path:created', handlePathCreated); // Stop recording points
+        canvas.isDrawingMode = false; // Stop drawing mode
+        drawPolygonFromPoints(); // Call to draw polygon from recorded points
+        polyPoints = []; // Reset points array
+    });
+
+    function removePencilStrokes() {
+        const objects = canvas.getObjects('path');
+        for (let i = objects.length - 1; i >= 0; i--) {
+            if (objects[i].type === 'path') {
+                canvas.remove(objects[i]);
+            }
+        }
+        console.log("Pencil Drawing Removed!");
+    }
+
+    function drawPolygonFromPoints() {
+        console.log("Drawing Polygon!");
+        if (polyPoints.length > 2) {
+            const polygon = new fabric.Polygon(polyPoints, {
+                fill: 'transparent',
+                stroke: 'white',
+                strokeWidth: 5,
+                selectable: false,
+                strokeDashArray: [15, 10]
+            });
+            canvas.add(polygon);
+            canvas.sendToBack(polygon);
+            canvas.renderAll();
+            
+
+            findObjectsInsidePolygon(polygon);
+        }
+    }
+
+    
+    function findObjectsInsidePolygon(lassoBoundary) {
+
+        let objectsWithinPolygon = [];
+
+        let rectCounter = 0;
+        let circleCounter = 0;
+        let ellipseCounter = 0;
+        let triangleCounter = 0;
+
+        for (let i = objectContainer.length - 1; i >= 0; i--) {
+            
+            let currentObjectCenter = objectContainer[i].getCenterPoint();
+
+            //console.log(currentObjectCenter);
+            //console.log(polyPoints.points);
+            if(isPointInPolygon(currentObjectCenter, lassoBoundary.points)){
+                
+                if(objectContainer[i].type === 'rect'){
+                    rectCounter++;
+                } else if(objectContainer[i].type === 'circle'){
+                    circleCounter++;
+                }
+
+                objectsWithinPolygon.push(objectContainer[i]);
+
+                
+            }
+        }
+
+        noOfObjects = objectsWithinPolygon.length;
+
+        let dArea = getArea(objectsWithinPolygon[noOfObjects-1]) - getArea(objectsWithinPolygon[noOfObjects-2])
+        let dt = getDistance(objectsWithinPolygon[noOfObjects-1].getCenterPoint(),objectsWithinPolygon[noOfObjects-2].getCenterPoint());
+        let dAngle = getAngle(objectsWithinPolygon[noOfObjects-1]) - getAngle(objectsWithinPolygon[noOfObjects-2]);
+        //let dColor = getColor(objectsWithinPolygon[noOfObjects-1]) - getColor(objectsWithinPolygon[noOfObjects-2]);
+        //let dOpacity = getOpacity(objectsWithinPolygon[noOfObjects-1]) - getArea(objectsWithinPolygon[noOfObjects-2]);
+
+        console.log("Area Difference (dA): ", dArea);
+        console.log("Time Difference (dt): ", dt);
+        console.log("Slope dArea/dt: ", dArea/dt);
         
-        this.#fabricCanvas.freeDrawingBrush = new fabric.PencilBrush(this.#fabricCanvas);
-        this.#fabricCanvas.freeDrawingBrush.color = this.#opts.color;
-        this.#fabricCanvas.freeDrawingBrush.width = this.#opts.brushSize;
-        this.#fabricCanvas.freeDrawingBrush.strokeLineCap = this.#opts.lineCap;
-        this.#fabricCanvas.freeDrawingBrush.strokeLineJoin = this.#opts.lineJoin;
-      };
-      
-      highlighter = (size = 60) => {
-        this.brushType = type.highlighter;
-        this.brushSize = size;
-        this.#opts.lineCap = "butt";
-        this.#opts.lineJoin = "round";
-      
-        this.#fabricCanvas.freeDrawingBrush = new fabric.PencilBrush(this.#fabricCanvas);
-        this.#fabricCanvas.freeDrawingBrush.color = this.#opts.color + "55";
-        this.#fabricCanvas.freeDrawingBrush.width = this.brushSize;
-        this.#fabricCanvas.freeDrawingBrush.strokeLineCap = this.#opts.lineCap;
-        this.#fabricCanvas.freeDrawingBrush.strokeLineJoin = this.#opts.lineJoin;
-      };
-      
-      eraser = () => {
-        this.brushType = type.eraser;
-        this.brushColor = this.#opts.bg;
-        this.#opts.lineCap = "round";
-        this.#opts.lineJoin = "round";
-        this.brushSize = 50;
-      
-        this.#fabricCanvas.freeDrawingBrush = new fabric.PencilBrush(this.#fabricCanvas);
-        this.#fabricCanvas.freeDrawingBrush.color = this.brushColor;
-        this.#fabricCanvas.freeDrawingBrush.width = this.brushSize;
-        this.#fabricCanvas.freeDrawingBrush.strokeLineCap = this.#opts.lineCap;
-        this.#fabricCanvas.freeDrawingBrush.strokeLineJoin = this.#opts.lineJoin;
-      };
-      
-      dx = () => {
-        this.brushType = type.dx;
-        this.#opts.lineCap = "round";
-        this.#opts.lineJoin = "round";
-      
-        this.#fabricCanvas.freeDrawingBrush = new fabric.PencilBrush(this.#fabricCanvas);
-        this.#fabricCanvas.freeDrawingBrush.color = this.#opts.color;
-        this.#fabricCanvas.freeDrawingBrush.width = this.#opts.brushSize;
-        this.#fabricCanvas.freeDrawingBrush.strokeLineCap = this.#opts.lineCap;
-        this.#fabricCanvas.freeDrawingBrush.strokeLineJoin = this.#opts.lineJoin;
-        this.#fabricCanvas.freeDrawingBrush.setLineDash([10, 5]);
-      };
-      
-  
-      redraw = () => {
-        this.#draw();
-        this.#log("Redraw called");
-      };
-      
-      clearOnlyScreen = () => {
-        this.#fabricCanvas.clear();
-        this.#fabricCanvas.setBackgroundColor(this.#opts.bg, this.#fabricCanvas.renderAll.bind(this.#fabricCanvas));
-      };
-      
-      clear = () => {
-        this.clearOnlyScreen();
-        this.#paths = [];
-        this.clearSaved();
-        this.#isDrawing = false;
-        this.#log("Cleared");
-      };
-      
-      undo = () => {
-        if (this.#paths.length > 0) {
-          this.#redo.push({
-            type: "path",
-            data: this.#paths[this.#paths.length - 1],
-          });
-          this.#paths.pop();
-          this.redraw();
-          this.#log("Undo Called");
+        console.log(getAngle(objectsWithinPolygon[noOfObjects-1]));
+        console.log("Angle Difference (dAngle): ", dAngle);
+        console.log("Slope d(Angle)/dt: ", dAngle/dt);
+
+        //console.log("Color Difference (dt): ", dColor);
+        //console.log("Slope d(Color)/dt: ", dColor/dt);
+
+        //console.log("Opacity Difference (dt): ", dAngle);
+        //console.log("Slope d(Opacity)/dt: ", dOpacity/dt);
+
+
+    function isPointInPolygon(point, polygonPoints) {
+        let x = point.x, y = point.y;
+        let inside = false;
+    
+        for (let i = 0, j = polygonPoints.length - 1; i < polygonPoints.length; j = i++) {
+            let xi = polygonPoints[i].x, yi = polygonPoints[i].y;
+            let xj = polygonPoints[j].x, yj = polygonPoints[j].y;
+    
+            let intersect = ((yi > y) != (yj > y))
+                && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            if (intersect) inside = true;
         }
-      };
-      
-      redo = () => {
-        const redoObj = this.#redo[this.#redo.length - 1];
-        if (redoObj && redoObj.type == "path") {
-          this.#paths.push(redoObj.data);
-          this.redraw();
-          this.#redo.pop();
-          this.#log("Redo Called");
-        }
-      };
-      
-      save = () => {
-        localStorage.removeItem(this.#CONSTANTS.DATA_KEY);
-        localStorage.setItem(this.#CONSTANTS.DATA_KEY, JSON.stringify(this.#paths));
-        if (!this.#opts.autosave) {
-          this.#log("Saved!");
-        }
-      };
-      
-  
-      clearSaved = () => {
-        localStorage.removeItem(this.#CONSTANTS.DATA_KEY);
-        this.#log("Saved cleared");
-      };
-      
-      drawFromSaved = () => {
-        const paths = localStorage.getItem(this.#CONSTANTS.DATA_KEY);
-        if (paths) {
-          this.#paths = JSON.parse(paths);
-          this.redraw();
-        }
-        this.#log("Redrawn from save");
-      };
-      
-      download = (filename = "drawing") => {
-        const dataUrl = this.#fabricCanvas.toDataURL({
-          format: 'png',
-          quality: 1.0,
-          multiplier: 1
-        });
-      
-        const a = document.createElement("a");
-        a.download = filename;
-        a.style.display = "none";
-        a.href = dataUrl;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        this.#log("Download called");
-      };
-      
-  
-  // Initializing Drawing Tablet
-  dt = new DrawingTablet("#canvas-container", {
-    logs: true,
-    fullscreen: true,
-    brushSize: opts.brushSize,
-    bg: "#181818",
-    color: opts.brushColor,
-    autosave: true,
-  });
-  
-  dt.log("Drawing Tablet Initialized");
-  
-  dcs = document.querySelectorAll(".dt-default-colors");
-  dcp = document.querySelectorAll(".dt-cp-container");
-  
-  dcs.forEach((e) => {
-    e.children[0].style.background = e.dataset.color;
-    selectColor();
-    e.addEventListener("click", () => {
-      dt.brushColor = e.dataset.color;
-      opts.brushColor = e.dataset.color;
-      selectColor();
-    });
-  });
-  
-  function selectColor() {
-    dcs.forEach((el) => {
-      el.style.border = `2px solid ${opts.brushColor === el.dataset.color ? el.dataset.color : "transparent"}`;
-    });
-  }
-  
-  dtPicker.addEventListener("input", (e) => {
-    dt.brushColor = e.target.value;
-    selectColor();
-  });
-  
-  download.addEventListener("click", () => {
-    dt.download();
-  });
-  
-  undo.addEventListener("click", () => {
-    dt.undo();
-  });
-  
-  redo.addEventListener("click", () => {
-    dt.redo();
-  });
-  
-  clear.addEventListener("click", () => {
-    const b = confirm("Are you sure to clear?");
-    if (b) {
-      dt.clear();
+        return inside;
     }
-  });
-  
-  
-  size.addEventListener("input", (e) => {
-    dt.brushSize = parseInt(e.target.value);
-  });
-  
-  pencil.addEventListener("click", () => {
-    dt.pencil();
-    dt.brushSize = parseInt(size.value);
-    dt.brushColor = opts.brushColor;
-    isSelected();
-  });
-  
-  dx.addEventListener("click", () => {
-    dt.dx();
-    dt.brushSize = parseInt(size.value);
-    dt.brushColor = opts.brushColor;
-    isSelected();
-  });
-  
-  highlighter.addEventListener("click", () => {
-    dt.highlighter();
-    dt.brushColor = opts.brushColor;
-    isSelected();
-  });
-  
-  eraser.addEventListener("click", () => {
-    dt.eraser();
-    isSelected();
-  });
-  
-  function isSelected() {
-    if (dt.brushType === type.pencil) {
-      document.querySelector("#pencil").style.bottom = "-10px";
-      document.querySelector("#highlighter").style.bottom = "-25px";
-      document.querySelector("#eraser").style.bottom = "-25px";
-      document.querySelector("#dx").style.bottom = "-25px";
-    } else if (dt.brushType === type.dx) {
-      document.querySelector("#pencil").style.bottom = "-25px";
-      document.querySelector("#highlighter").style.bottom = "-25px";
-      document.querySelector("#eraser").style.bottom = "-25px";
-      document.querySelector("#dx").style.bottom = "-10px";
-    } else if (dt.brushType === type.eraser) {
-      document.querySelector("#pencil").style.bottom = "-25px";
-      document.querySelector("#highlighter").style.bottom = "-25px";
-      document.querySelector("#eraser").style.bottom = "-10px";
-      document.querySelector("#dx").style.bottom = "-25px";
-    } else if (dt.brushType === type.highlighter) {
-      document.querySelector("#highlighter").style.bottom = "-10px";
-      document.querySelector("#pencil").style.bottom = "-25px";
-      document.querySelector("#eraser").style.bottom = "-25px";
-      document.querySelector("#dx").style.bottom = "-25px";
+}
+
+function getArea(shapeObject){
+
+    if(shapeObject.type === 'rect'){
+        return shapeObject.height * shapeObject.width;
+    } else if (shapeObject.type === 'circle') {
+        return Math.PI * shapeObject.radius * shapeObject.radius;
     }
-  }
-  isSelected();
+    
+}
+
+function getDistance(point1, point2) {
+
+    const dx = point2.x - point1.x;
+    const dy = point2.y - point1.y;
+
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+function getAngle(shapeObject){
+    return shapeObject.angle;
+}
+
+}
+
+// Example to start lasso
+document.getElementById('pencil').addEventListener('click', startLasso);
+

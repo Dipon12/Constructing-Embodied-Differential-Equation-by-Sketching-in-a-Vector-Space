@@ -4,7 +4,7 @@ var canvas = new fabric.Canvas('c',{
     backgroundColor: '#181818',
     selectionColor: 'rgba(100,100,100,0.3)',
     selectionLineWidth: 2,
-    viewportTransform: [1, 0, 0, 1, -window.outerWidth/2, -window.outerHeight/2],
+    viewportTransform: [1, 0, 0, 1, -window.innerWidth/2, -window.innerrHeight/2],
   });
   
   // Set the background color of the canvas
@@ -43,94 +43,167 @@ var canvas = new fabric.Canvas('c',{
  canvas.add(polyline);
 
  canvas.renderAll();
-  
-  function drawGrid() {
+
+/*
+ function drawGrid() {
     var zoom = canvas.getZoom();
     var gridSize = 150; // size of the larger grid
     var finerGridSize = gridSize / 3; // size of the finer grid
     var vp = canvas.viewportTransform;
     var width = canvas.getWidth() / zoom;
     var height = canvas.getHeight() / zoom;
-  
+
     var xOffset = Math.abs(vp[4] / zoom);
     var yOffset = Math.abs(vp[5] / zoom);
-  
+
+    // Calculate where the grid should start drawing to ensure it covers left and top
+    var startX = -xOffset % gridSize;
+    var startY = -yOffset % gridSize;
     var totalWidth = xOffset + width;
     var totalHeight = yOffset + height;
-  
+
     // Clear existing grid lines if any
     canvas.getObjects('line').forEach(function(line) {
         if (line.grid) canvas.remove(line);
     });
-  
+
     // Draw main grid
-    for (var i = -Math.ceil(xOffset / gridSize); i < (totalWidth / gridSize); i++) {
-        var distance = i * gridSize;
-        var horizontal = new fabric.Line([0, distance, totalWidth, distance], {
+    for (var i = startX; i < totalWidth; i += gridSize) {
+        var vertical = new fabric.Line([i, 0, i, totalHeight], {
             stroke: '#ccc', strokeWidth: 1, selectable: false, opacity: 0.2, grid: true
         });
-        var vertical = new fabric.Line([distance, 0, distance, totalHeight], {
+        canvas.add(vertical);
+        canvas.sendToBack(vertical);
+    }
+    for (var j = startY; j < totalHeight; j += gridSize) {
+        var horizontal = new fabric.Line([0, j, totalWidth, j], {
             stroke: '#ccc', strokeWidth: 1, selectable: false, opacity: 0.2, grid: true
         });
         canvas.add(horizontal);
-        canvas.add(vertical);
         canvas.sendToBack(horizontal);
-        canvas.sendToBack(vertical);
     }
-  
+
     // Draw finer grid if zoomed in
     if (zoom > 1) {
-        for (var j = -Math.ceil(xOffset / finerGridSize); j < (totalWidth / finerGridSize); j++) {
-            var fineDistance = j * finerGridSize;
-            var fineHorizontal = new fabric.Line([0, fineDistance, totalWidth, fineDistance], {
+        for (var x = startX; x < totalWidth; x += finerGridSize) {
+            var fineVertical = new fabric.Line([x, 0, x, totalHeight], {
                 stroke: '#ccc', strokeWidth: 0.5, selectable: false, opacity: 0.1, grid: true
             });
-            var fineVertical = new fabric.Line([fineDistance, 0, fineDistance, totalHeight], {
+            canvas.add(fineVertical);
+            canvas.sendToBack(fineVertical);
+        }
+        for (var y = startY; y < totalHeight; y += finerGridSize) {
+            var fineHorizontal = new fabric.Line([0, y, totalWidth, y], {
                 stroke: '#ccc', strokeWidth: 0.5, selectable: false, opacity: 0.1, grid: true
             });
             canvas.add(fineHorizontal);
-            canvas.add(fineVertical);
             canvas.sendToBack(fineHorizontal);
-            canvas.sendToBack(fineVertical);
         }
     }
-  }
+}
+
   
   
   // Initial grid draw
   drawGrid();
 
 
-    window.onresize = function() {
-        canvas.setWidth(window.outerWidth);
-        canvas.setHeight(window.outerHeight);
-    };
-  
-  // Redraw grid on zoom and resize
-  
   canvas.on('mouse:wheel', function(opt) {
-        var delta = opt.e.deltaY;
-        var pointer = canvas.getPointer(opt.e);
-        var zoom = canvas.getZoom();
-        zoom *= 0.999 ** delta;
-        if (zoom > 20) zoom = 20;
-        if (zoom < 0.1) zoom = 0.1;
+    var delta = opt.e.deltaY;
+    var zoom = canvas.getZoom();
+    zoom *= 0.999 ** delta;
+    if (zoom > 20) zoom = 20;
+    if (zoom < 0.1) zoom = 0.1;
 
-        // Zoom into cursor rather than center of canvas
-        canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+    // Zoom into cursor rather than center of canvas
+    canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
 
-        drawGrid(); // Redraw the grid based on new zoom level
-        opt.e.preventDefault();
-        opt.e.stopPropagation();
-    });
-    
-  
-    window.addEventListener('resize', function() {
-        canvas.setWidth(window.outerWidth);
-        canvas.setHeight(window.outerHeight);
+    drawGrid(); // Redraw the grid based on new zoom level
+    opt.e.preventDefault();
+    opt.e.stopPropagation();
+});
+
+window.addEventListener('resize', function() {
+    var newWidth = window.outerWidth;
+    var newHeight = window.outerHeight;
+    if (canvas.getWidth() !== newWidth || canvas.getHeight() !== newHeight) {
+        canvas.setWidth(newWidth);
+        canvas.setHeight(newHeight);
         canvas.calcOffset();  // Recalculate the offset of the canvas element
         drawGrid();           // Redraw grid to fit new size
+    }
+});
+*/
+function drawInitialGrid() {
+    var gridSize = 150; // size of the larger grid
+    var finerGridSize = gridSize / 3; // size of the finer grid
+
+    // Assume users won't zoom out more than 4x the initial canvas size
+    var extendedWidth = canvas.getWidth() * 50;
+    var extendedHeight = canvas.getHeight() * 50;
+
+    // Main grid lines
+    for (var i = -extendedWidth; i <= extendedWidth; i += gridSize) {
+        var vertical = new fabric.Line([i, -extendedHeight, i, extendedHeight], {
+            stroke: '#ccc', strokeWidth: 1, selectable: false, opacity: 0.2, class: 'mainGrid'
+        });
+        canvas.add(vertical);
+    }
+    for (var j = -extendedHeight; j <= extendedHeight; j += gridSize) {
+        var horizontal = new fabric.Line([-extendedWidth, j, extendedWidth, j], {
+            stroke: '#ccc', strokeWidth: 1, selectable: false, opacity: 0.2, class: 'mainGrid'
+        });
+        canvas.add(horizontal);
+    }
+
+    // Finer grid lines if needed
+    for (var x = -extendedWidth; x <= extendedWidth; x += finerGridSize) {
+        var fineVertical = new fabric.Line([x, -extendedHeight, x, extendedHeight], {
+            stroke: '#ccc', strokeWidth: 0.5, selectable: false, opacity: 0.1, class: 'fineGrid'
+        });
+        canvas.add(fineVertical);
+    }
+    for (var y = -extendedHeight; y <= extendedHeight; y += finerGridSize) {
+        var fineHorizontal = new fabric.Line([-extendedWidth, y, extendedWidth, y], {
+            stroke: '#ccc', strokeWidth: 0.5, selectable: false, opacity: 0.1, class: 'fineGrid'
+        });
+        canvas.add(fineHorizontal);
+    }
+}
+
+canvas.on('mouse:wheel', function(opt) {
+    var delta = opt.e.deltaY;
+    var zoom = canvas.getZoom();
+    zoom *= 0.999 ** delta;
+    if (zoom > 20) zoom = 20;
+    // Change the minimum zoom level to 0.25
+    if (zoom < 0.25) zoom = 0.25;
+
+    canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+
+    // Update grid line thickness based on zoom
+    canvas.getObjects().forEach(function(obj) {
+        if (obj.class === 'mainGrid' || obj.class === 'fineGrid') {
+            obj.strokeWidth = obj.class === 'mainGrid' ? 1 / zoom : 0.5 / zoom;
+        }
     });
+
+    canvas.requestRenderAll();
+    opt.e.preventDefault();
+    opt.e.stopPropagation();
+});
+
+// Initial setup
+drawInitialGrid();
+
+window.addEventListener('resize', function() {
+    canvas.setWidth(window.innerrWidth);
+    canvas.setHeight(window.innerHeight);
+    // Consider redrawing grid if necessary due to significantly increased size
+});
+
+
+
 
     
 
