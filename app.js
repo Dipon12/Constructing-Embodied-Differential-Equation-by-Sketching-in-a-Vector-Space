@@ -4,7 +4,7 @@ var canvas = new fabric.Canvas('c',{
     backgroundColor: '#181818',
     selectionColor: 'rgba(100,100,100,0.3)',
     selectionLineWidth: 2,
-    viewportTransform: [1, 0, 0, 1, -window.innerWidth/2, -window.innerrHeight/2],
+    viewportTransform: [1, 0, 0, 1, 0, 0],
   });
   
   // Set the background color of the canvas
@@ -557,3 +557,15 @@ function getAngle(shapeObject){
 // Example to start lasso
 document.getElementById('pencil').addEventListener('click', startLasso);
 
+
+function toggleSlider(id) {
+    var slider = document.getElementById(id);
+    var isActive = slider.style.display !== 'none';
+    slider.style.display = isActive ? 'none' : 'flex';
+}
+
+document.querySelectorAll('.slider input').forEach(input => {
+    input.addEventListener('input', function () {
+        this.nextElementSibling.textContent = parseFloat(this.value).toFixed(2);
+    });
+});

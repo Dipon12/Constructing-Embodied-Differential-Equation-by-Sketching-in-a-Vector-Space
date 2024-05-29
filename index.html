@@ -37,24 +37,25 @@
     
 
     <div class="dt-tools-container">
-      <select id="shape-selector">
-        <option value="Shape Select" selected>Select Shape</option>
-          <option value="rectangle">Rectangle</option>
-          <option value="circle">Circle</option>
-          <option value="triangle">Triangle</option>
-          <option value="ellipse">Ellipse</option>
-          <option value="polygon">Polygon</option>
-      </select>
+      <div class="dt-button-container">
+        <select id="shape-selector">
+          <option value="Shape Select" selected>Select Shape</option>
+            <option value="rectangle">Rectangle</option>
+            <option value="circle">Circle</option>
+            <option value="triangle">Triangle</option>
+            <option value="ellipse">Ellipse</option>
+            <option value="polygon">Polygon</option>
+        </select>
+      </div>
+      
+      <div class="dt-button-container">
+        <button id="stop-drawing">Stop Drawing</button>
+      </div>
+
+      <input type="number" min="1" max="100" id="size" value="3" />
        <!-- Button to trigger drawing -->
     </div>
     
-    <div class="dt-tools-container">
-      <button id="stop-drawing">Stop Drawing</button>
-    </div>
-  
-
-    
-    <input type="number" min="1" max="100" id="size" value="3" />
     
 
     <div class="dt-dc-container">
@@ -81,24 +82,29 @@
       </div>
     </div>
 
-    <div class="dt-cp-container">
-      <label for="dtPicker" class="dt-color-picker">
-        <input id="dtPicker" type="color" style="visibility: hidden; opacity: 0; width: 0; height: 0" />
-      </label>
-    </div>
+      <div class="dt-cp-container">
+          <label for="dtPicker" class="dt-color-picker">
+              <input id="dtPicker" type="color" style="visibility: hidden; opacity: 0; width: 0; height: 0" />
+          </label>
+      </div>
+  
+
+    
 
     <div class="dt-undo-redo-container">
       <div class="">
-        <img src="./assets/undo.png" title="Undo (Ctrl + Z)" id="undo" alt="" />
+        <img src="./assets/opacity.png" title="opacity" id="opacity" alt="" />
       </div>
       <div class="">
-        <img src="./assets/redo.png" title="Redo (Ctrl + Y)" id="redo" alt="" />
+        <img src="./assets/brightness.png" title="brightness" id="brightness" alt="" />
       </div>
     </div>
     <div class="dt-download-container">
       <img src="./assets/download.png" title="Download (Ctrl + E)" id="download" alt="" />
     </div>
   </div>
+
+  
   
   
   <script src = "app.js"></script>
