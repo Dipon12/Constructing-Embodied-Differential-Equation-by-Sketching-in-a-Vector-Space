@@ -558,14 +558,26 @@ function getAngle(shapeObject){
 document.getElementById('pencil').addEventListener('click', startLasso);
 
 
-function toggleSlider(id) {
-    var slider = document.getElementById(id);
-    var isActive = slider.style.display !== 'none';
-    slider.style.display = isActive ? 'none' : 'flex';
+document.getElementById('opacity').addEventListener('click', opacityModifier);
+
+function opacityModifier(){
+    var sliderContainer = document.getElementById('opacitySliderContainer');
+    sliderContainer.style.display = 'block';
 }
 
-document.querySelectorAll('.slider input').forEach(input => {
-    input.addEventListener('input', function () {
-        this.nextElementSibling.textContent = parseFloat(this.value).toFixed(2);
-    });
+document.getElementById('opacitySlider').addEventListener('input', function() {
+    var value = document.getElementById('opacitySlider').value;
+    document.getElementById('opacitySliderValue').textContent = value;
+});
+
+document.getElementById('brightness').addEventListener('click', brightnessModifier);
+
+function brightnessModifier(){
+    var sliderContainer = document.getElementById('brightnessSliderContainer');
+    sliderContainer.style.display = 'block';
+}
+
+document.getElementById('brightnessSlider').addEventListener('input', function() {
+    var value = document.getElementById('brightnessSlider').value;
+    document.getElementById('brightnessSliderValue').textContent = value;
 });

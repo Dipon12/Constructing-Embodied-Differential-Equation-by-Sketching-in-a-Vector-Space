@@ -183,7 +183,7 @@ body {
 .dt-button-container select, .dt-button-container input {
   width: 100%;  /* Makes children elements take the full width of the container */
   
-  margin: 2px 0;  /* Adds a little space between the dropdown and the input */
+   /* Adds a little space between the dropdown and the input */
   border-radius: 5px;
   background-color: #404040;
   color: #ffffff;
@@ -208,4 +208,27 @@ body {
   background-color: #505050;  /* Slightly lighter gray on hover */
 }
 
- 
+.sliderContainer {
+  position: absolute;
+  bottom: 105%; /* Positions the top of #sliderContainer at the bottom of its parent */
+  transform: translateX(-50%);
+  width: 19%; /* Ensures it spans the width of its parent */
+  background: #333; /* Example background color */
+  padding: 5px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #404040;
+  text-align: center;
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+#opacitySliderContainer{
+  left: 84%;
+}
+
+#brightnessSliderContainer{
+  left: 89%;
+}
+
