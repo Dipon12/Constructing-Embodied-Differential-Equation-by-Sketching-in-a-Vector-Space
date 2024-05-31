@@ -139,8 +139,8 @@ function drawInitialGrid() {
     var finerGridSize = gridSize / 3; // size of the finer grid
 
     // Assume users won't zoom out more than 4x the initial canvas size
-    var extendedWidth = canvas.getWidth() * 50;
-    var extendedHeight = canvas.getHeight() * 50;
+    var extendedWidth = canvas.getWidth() * 10;
+    var extendedHeight = canvas.getHeight() * 10;
 
     // Main grid lines
     for (var i = -extendedWidth; i <= extendedWidth; i += gridSize) {
@@ -256,7 +256,8 @@ function startDrawing(shapeType) {
                     originY: 'top',
                     width: 0,
                     height: 0,
-                    fill: 'rgba(255,168,0, 0.9)', // Semi-transparent
+                    fill: 'rgba(255,168,0, 0.8)',
+                    brightness: 0.8, // Semi-transparent
                     selectable: true
                 });
             } else if (shapeType === 'circle') {
@@ -266,7 +267,9 @@ function startDrawing(shapeType) {
                     originX: 'left',
                     originY: 'top',
                     radius: 1,
-                    fill: 'rgba(0, 255, 0, 0.5)' // Semi-transparent
+                    fill: 'rgba(0, 255, 0, 0.8)',
+                    brightness: 0.8,
+                    selectable: true// Semi-transparent
                 });
             } else if (shapeType === 'ellipse') {
                 shape = new fabric.Ellipse({
@@ -276,7 +279,9 @@ function startDrawing(shapeType) {
                     originY: 'top',
                     rx: 1,
                     ry: 1,
-                    fill: 'rgba(0, 0, 255, 0.5)' // Semi-transparent
+                    fill: 'rgba(0, 0, 255, 0.8)',
+                    brightness: 0.8, // Semi-transparent
+                    selectable: true
                 });
             }
             // More shapes can be added here similarly
@@ -557,19 +562,29 @@ function getAngle(shapeObject){
 // Example to start lasso
 document.getElementById('pencil').addEventListener('click', startLasso);
 
-
+document.getElementById('opacitySlider').addEventListener('input', updateOpacity);
 document.getElementById('opacity').addEventListener('click', opacityModifier);
+function updateOpacity() {
+    var activeObject = canvas.getActiveObject();
+    console.log(activeObject.type)
+    if (activeObject) {
+        var opacityValue = parseFloat(document.getElementById('opacitySlider').value);
+        activeObject.set('opacity', opacityValue);
+        document.getElementById('opacitySliderValue').innerText = opacityValue.toString();
+        canvas.renderAll();
+    }
+}
 
 function opacityModifier(){
     var sliderContainer = document.getElementById('opacitySliderContainer');
     sliderContainer.style.display = 'block';
+    console.log("Opacity clicked!");
 }
 
-document.getElementById('opacitySlider').addEventListener('input', function() {
-    var value = document.getElementById('opacitySlider').value;
-    document.getElementById('opacitySliderValue').textContent = value;
-});
 
+// Event listeners for sliders
+
+document.getElementById('brightnessSlider').addEventListener('input', updateBrightness);
 document.getElementById('brightness').addEventListener('click', brightnessModifier);
 
 function brightnessModifier(){
@@ -577,7 +592,27 @@ function brightnessModifier(){
     sliderContainer.style.display = 'block';
 }
 
-document.getElementById('brightnessSlider').addEventListener('input', function() {
-    var value = document.getElementById('brightnessSlider').value;
-    document.getElementById('brightnessSliderValue').textContent = value;
+function updateBrightness() {
+    var activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        var brightnessValue = parseFloat(document.getElementById('brightnessSlider').value);
+        var filter = new fabric.Image.filters.Brightness({
+            brightness: brightnessValue
+        });
+        activeObject.filters[0] = filter; // assuming brightness filter is at index 0
+        activeObject.applyFilters();
+        document.getElementById('brightnessSliderValue').innerText = brightnessValue.toString();
+        canvas.renderAll();
+    }
+}
+
+var sliderContainer = document.getElementById('opacitySliderContainer');
+
+sliderContainer.addEventListener('mouseenter', function() {
+    sliderContainer.style.opacity = '1'; // Full opacity when hovered
 });
+
+sliderContainer.addEventListener('mouseleave', function() {
+    sliderContainer.style.opacity = '0'; // Fade out when not hovered
+});
+
