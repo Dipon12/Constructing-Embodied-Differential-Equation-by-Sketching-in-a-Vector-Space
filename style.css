@@ -224,11 +224,16 @@ body {
   border-bottom-left-radius: 8px;
 }
 
-#opacitySliderContainer{
-  left: 84%;
-}
-
 #brightnessSliderContainer{
   left: 89%;
 }
 
+#opacitySliderContainer {
+  left: 84%;
+  opacity: 0.8; /* Initial visibility */
+  transition: opacity 1s ease-out; /* Smooth transition for opacity change */
+}
+
+#opacitySliderContainer:hover {
+  opacity: 1; /* Full visibility on hover */
+}

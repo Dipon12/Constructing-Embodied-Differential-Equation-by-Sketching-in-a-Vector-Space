@@ -134,6 +134,20 @@ window.addEventListener('resize', function() {
     }
 });
 */
+
+/*
+window.addEventListener('resize', function() {
+    var newWidth = window.innerWidth;
+    var newHeight = window.innerHeight;
+    if (canvas.getWidth() !== newWidth || canvas.getHeight() !== newHeight) {
+        canvas.setWidth(newWidth);
+        canvas.setHeight(newHeight);
+        canvas.calcOffset();  // Recalculate the offset of the canvas element
+        drawInitialGrid();           // Redraw grid to fit new size
+    }
+});
+*/
+
 function drawInitialGrid() {
     var gridSize = 150; // size of the larger grid
     var finerGridSize = gridSize / 3; // size of the finer grid
@@ -195,19 +209,83 @@ canvas.on('mouse:wheel', function(opt) {
 
 // Initial setup
 drawInitialGrid();
+/*
 
 window.addEventListener('resize', function() {
     canvas.setWidth(window.innerrWidth);
     canvas.setHeight(window.innerHeight);
     // Consider redrawing grid if necessary due to significantly increased size
+});*/
+
+  
+// Event listener for window resize
+window.addEventListener('resize', function() {
+    var newWidth = window.innerWidth;
+    var newHeight = window.innerHeight;
+    if (canvas.getWidth() !== newWidth || canvas.getHeight() !== newHeight) {
+        canvas.setWidth(newWidth);
+        canvas.setHeight(newHeight);
+        canvas.calcOffset();  // Recalculate the offset of the canvas element
+        drawGrid();           // Redraw grid to fit new size
+    }
 });
 
+// Function to draw both the main grid and the finer grid
+function drawGrid() {
+    canvas.clear();  // Clear the existing grid before redrawing
 
+    var gridSize = 150; // size of the larger grid
+    var finerGridSize = gridSize / 3; // size of the finer grid
 
-
+    var width = canvas.getWidth();
+    var height = canvas.getHeight();
     
+    // Main grid lines
+    drawLines(width, height, gridSize, '#ccc', 1, 0.2, 'mainGrid');
+    // Finer grid lines
+    drawLines(width, height, finerGridSize, '#ccc', 0.5, 0.1, 'fineGrid');
+}
 
-    
+// Helper function to draw grid lines
+function drawLines(width, height, spacing, strokeColor, strokeWidth, opacity, className) {
+    for (var i = -width * 2; i <= width * 2; i += spacing) {
+        var vertical = new fabric.Line([i, -height * 2, i, height * 2], {
+            stroke: strokeColor, strokeWidth: strokeWidth, selectable: false, opacity: opacity, class: className
+        });
+        canvas.add(vertical);
+    }
+    for (var j = -height * 2; j <= height * 2; j += spacing) {
+        var horizontal = new fabric.Line([-width * 2, j, width * 2, j], {
+            stroke: strokeColor, strokeWidth: strokeWidth, selectable: false, opacity: opacity, class: className
+        });
+        canvas.add(horizontal);
+    }
+}
+
+// Handle zoom via mouse wheel
+canvas.on('mouse:wheel', function(opt) {
+    var delta = opt.e.deltaY;
+    var zoom = canvas.getZoom();
+    zoom *= 0.999 ** delta;
+    if (zoom > 20) zoom = 20;
+    if (zoom < 0.25) zoom = 0.25;
+
+    canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+
+    // Update grid line thickness based on zoom
+    canvas.getObjects().forEach(function(obj) {
+        if (obj.class === 'mainGrid' || obj.class === 'fineGrid') {
+            obj.strokeWidth = obj.class === 'mainGrid' ? 1 / zoom : 0.5 / zoom;
+        }
+    });
+
+    canvas.requestRenderAll();
+    opt.e.preventDefault();
+    opt.e.stopPropagation();
+});
+
+// Initial setup
+//drawGrid();  // Draw the initial grid when the page loads
 
      
   
@@ -501,6 +579,7 @@ function startLasso() {
         let dArea = getArea(objectsWithinPolygon[noOfObjects-1]) - getArea(objectsWithinPolygon[noOfObjects-2])
         let dt = getDistance(objectsWithinPolygon[noOfObjects-1].getCenterPoint(),objectsWithinPolygon[noOfObjects-2].getCenterPoint());
         let dAngle = getAngle(objectsWithinPolygon[noOfObjects-1]) - getAngle(objectsWithinPolygon[noOfObjects-2]);
+        let dOpacity = getOpacity(objectsWithinPolygon[noOfObjects-1]) - getOpacity(objectsWithinPolygon[noOfObjects-2]);
         //let dColor = getColor(objectsWithinPolygon[noOfObjects-1]) - getColor(objectsWithinPolygon[noOfObjects-2]);
         //let dOpacity = getOpacity(objectsWithinPolygon[noOfObjects-1]) - getArea(objectsWithinPolygon[noOfObjects-2]);
 
@@ -511,6 +590,11 @@ function startLasso() {
         console.log(getAngle(objectsWithinPolygon[noOfObjects-1]));
         console.log("Angle Difference (dAngle): ", dAngle);
         console.log("Slope d(Angle)/dt: ", dAngle/dt);
+
+        console.log(getOpacity(objectsWithinPolygon[noOfObjects-1]));
+        console.log("Opacity Difference (dAngle): ", dOpacity);
+        console.log("Slope d(Opcaity)/dt: ", dOpacity/dt);
+
 
         //console.log("Color Difference (dt): ", dColor);
         //console.log("Slope d(Color)/dt: ", dColor/dt);
@@ -535,27 +619,31 @@ function startLasso() {
     }
 }
 
-function getArea(shapeObject){
+    function getArea(shapeObject){
 
-    if(shapeObject.type === 'rect'){
-        return shapeObject.height * shapeObject.width;
-    } else if (shapeObject.type === 'circle') {
-        return Math.PI * shapeObject.radius * shapeObject.radius;
+        if(shapeObject.type === 'rect'){
+            return shapeObject.height * shapeObject.width;
+        } else if (shapeObject.type === 'circle') {
+            return Math.PI * shapeObject.radius * shapeObject.radius;
+        }
+        
     }
-    
-}
 
-function getDistance(point1, point2) {
+    function getDistance(point1, point2) {
 
-    const dx = point2.x - point1.x;
-    const dy = point2.y - point1.y;
+        const dx = point2.x - point1.x;
+        const dy = point2.y - point1.y;
 
-    return Math.sqrt(dx * dx + dy * dy);
-}
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 
-function getAngle(shapeObject){
-    return shapeObject.angle;
-}
+    function getAngle(shapeObject){
+        return shapeObject.angle;
+    }
+
+    function getOpacity(shapeObject){
+        return shapeObject.opacity;
+    }
 
 }
 
@@ -614,5 +702,6 @@ sliderContainer.addEventListener('mouseenter', function() {
 
 sliderContainer.addEventListener('mouseleave', function() {
     sliderContainer.style.opacity = '0'; // Fade out when not hovered
+    sliderContainer.style.display = 'none';
 });
 
