@@ -116,8 +116,6 @@ function startLasso() {
         initialPositionValue = 0;
 
         function dynamicsRecorder(){
-            
-            
 
             for(let i=0; i<noOfObjects-1; i++){
 
