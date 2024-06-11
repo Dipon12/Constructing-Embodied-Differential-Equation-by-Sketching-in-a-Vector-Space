@@ -146,8 +146,8 @@ window.addEventListener('resize', function() {
         drawInitialGrid();           // Redraw grid to fit new size
     }
 });
-*/
 
+*/
 function drawInitialGrid() {
     var gridSize = 150; // size of the larger grid
     var finerGridSize = gridSize / 3; // size of the finer grid
@@ -184,6 +184,7 @@ function drawInitialGrid() {
         canvas.add(fineHorizontal);
     }
 }
+
 
 canvas.on('mouse:wheel', function(opt) {
     var delta = opt.e.deltaY;
