@@ -162,14 +162,27 @@ body {
   margin-left: 1rem;
 }
 
+.dt-tools-container {
+  position: relative;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
 
+.dt-undo-redo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.8rem;
+}
 .dt-button-container select {
   background-color: #404040; /* Dark grey background */
   color: #ffffff; /* White text */
   border-left: 1px solid #404040;
   padding: 0 0.8rem;
-  width: 200px; /* Adjust width as needed */
-  border-radius: 5px; /* Rounded corners */
+  width: 100%; /* Adjust width as needed */
+  /*border-radius: 5px;  Rounded corners */
   cursor: pointer;
   margin-left: 0.8 rem;
   margin-right: 0.8rem;
@@ -199,7 +212,7 @@ body {
   padding: 5px 10px;          /* Reduced padding for a smaller button */
   font-size: 14px;            /* Smaller font size */
   border-radius: 3px;        /* Optional: rounded corners */
-  transition: background 0.3s ease; /* Optional: smooth transition for hover effect */
+  /*transition: background 0.3s ease;  Optional: smooth transition for hover effect */
   margin-left: 0.8rem;
   margin-right: 0.8rem;
 }
@@ -236,4 +249,27 @@ body {
 
 #opacitySliderContainer:hover {
   opacity: 1; /* Full visibility on hover */
+}
+
+
+#infinite-grid {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+}
+
+.cell {
+  box-sizing: border-box;
+  position: absolute;
+  width: 100px; /* size of each cell */
+  height: 100px;
+  border-right: 1px solid #ccc; /* inner grid line */
+  border-bottom: 1px solid #ccc;
+}
+
+/* Optionally style for a larger grid area */
+.large-area {
+  width: 10000px; /* very large area */
+  height: 10000px;
 }

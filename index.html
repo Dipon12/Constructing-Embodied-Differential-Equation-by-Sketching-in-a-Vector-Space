@@ -8,20 +8,24 @@
   <link rel="stylesheet" href="style.css" />
   <script src = "lib/jquery.min.js"></script>
   <script src = "lib/fabric.min.js"></script>
-</head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
 
+</head>
 <body>
   
   <div id="canvas-container">
     <canvas id="c"></canvas>
   </div>
+
+  <div id="infinite-grid"></div>
+
   
   <div class="dt-control-container">
     <div class="dt-tools-container">
       <img src="./assets/pencil.svg" title="Brush" id="pencil" alt="" />
     </div>
     <div class="dt-tools-container">
-      <img src="./assets/highlighter.svg" title="Highlighter" id="highlighter" alt="" />
+      <img src="./assets/highlighter.svg" title="Copy Brush" id="highlighter" alt="" />
     </div>
     <div class="dt-tools-container">
       <img src="./assets/eraser.png" title="Eraser" id="eraser" alt="" />
@@ -48,7 +52,7 @@
         </select>
       </div>
       
-      <div class="dt-button-container">
+      <div class="dt-button-container" >
         <button id="stop-drawing">Stop Drawing</button>
       </div>
 
@@ -124,7 +128,7 @@
   
   
   
-  <script src = "app.js"></script>
+  <script src = "./javascripts/app.js"></script>
 
 </body>
 

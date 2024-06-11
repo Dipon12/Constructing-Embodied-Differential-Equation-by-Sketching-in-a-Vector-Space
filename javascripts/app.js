@@ -219,6 +219,8 @@ window.addEventListener('resize', function() {
 
   
 // Event listener for window resize
+
+/*
 window.addEventListener('resize', function() {
     var newWidth = window.innerWidth;
     var newHeight = window.innerHeight;
@@ -231,6 +233,8 @@ window.addEventListener('resize', function() {
 });
 
 // Function to draw both the main grid and the finer grid
+
+
 function drawGrid() {
     canvas.clear();  // Clear the existing grid before redrawing
 
@@ -260,7 +264,26 @@ function drawLines(width, height, spacing, strokeColor, strokeWidth, opacity, cl
         });
         canvas.add(horizontal);
     }
+}*/
+
+function createGrid() {
+    const grid = document.getElementById('infinite-grid');
+    const gridSize = 10000; // This can be as large as needed
+    for (let i = 0; i < gridSize; i += 100) { // Adjust 100 to your cell size
+        for (let j = 0; j < gridSize; j += 100) {
+            let cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.style.left = `${i}px`;
+            cell.style.top = `${j}px`;
+            grid.appendChild(cell);
+        }
+    }
 }
+
+createGrid();
+
+
+
 
 // Handle zoom via mouse wheel
 canvas.on('mouse:wheel', function(opt) {
@@ -541,6 +564,7 @@ function startLasso() {
             
 
             findObjectsInsidePolygon(polygon);
+            
         }
     }
 
@@ -575,25 +599,143 @@ function startLasso() {
         }
 
         noOfObjects = objectsWithinPolygon.length;
-
-        let dArea = getArea(objectsWithinPolygon[noOfObjects-1]) - getArea(objectsWithinPolygon[noOfObjects-2])
-        let dt = getDistance(objectsWithinPolygon[noOfObjects-1].getCenterPoint(),objectsWithinPolygon[noOfObjects-2].getCenterPoint());
-        let dAngle = getAngle(objectsWithinPolygon[noOfObjects-1]) - getAngle(objectsWithinPolygon[noOfObjects-2]);
-        let dOpacity = getOpacity(objectsWithinPolygon[noOfObjects-1]) - getOpacity(objectsWithinPolygon[noOfObjects-2]);
-        //let dColor = getColor(objectsWithinPolygon[noOfObjects-1]) - getColor(objectsWithinPolygon[noOfObjects-2]);
-        //let dOpacity = getOpacity(objectsWithinPolygon[noOfObjects-1]) - getArea(objectsWithinPolygon[noOfObjects-2]);
-
-        console.log("Area Difference (dA): ", dArea);
-        console.log("Time Difference (dt): ", dt);
-        console.log("Slope dArea/dt: ", dArea/dt);
         
-        console.log(getAngle(objectsWithinPolygon[noOfObjects-1]));
-        console.log("Angle Difference (dAngle): ", dAngle);
-        console.log("Slope d(Angle)/dt: ", dAngle/dt);
+        dHeightArray = [];
+        dWidthArray = [];
+        dRadiusArray = [];
+        dOpacityArray = [];
+        dtArray = [];
+        initialHeightValue = 0;
+        initialPositionValue = 0;
 
-        console.log(getOpacity(objectsWithinPolygon[noOfObjects-1]));
-        console.log("Opacity Difference (dAngle): ", dOpacity);
-        console.log("Slope d(Opcaity)/dt: ", dOpacity/dt);
+        function dynamicsRecorder(){
+            
+            
+
+            for(let i=0; i<noOfObjects-1; i++){
+
+                if(objectsWithinPolygon[i].type === 'rect'){
+                    dHeightArray.push(objectsWithinPolygon[i+1].height - objectsWithinPolygon[i].height);
+                    dWidthArray.push(objectsWithinPolygon[i+1].width - objectsWithinPolygon[i].width);
+                } else if(objectsWithinPolygon[i].type === 'circle'){
+                    dRadiusArray.push(objectsWithinPolygon[i+1].radius - objectsWithinPolygon[i].radius);
+                }
+                
+                dtArray.push(getDistance(objectsWithinPolygon[noOfObjects-1],objectsWithinPolygon[noOfObjects-2]));
+            }
+
+            if(objectsWithinPolygon[0].type === 'rect'){
+                initialHeightValue = objectsWithinPolygon[0].height;
+                initialWidthValue  = objectsWithinPolygon[0].width;
+            } else if(objectsWithinPolygon[0].type === 'circle'){
+                initialRadiusValue  = objectsWithinPolygon[0].radius;
+            }
+
+            initialPositionValue = objectsWithinPolygon[0].getCenterPoint();
+
+        }
+
+        
+        function fitPolynomialRegression(xValues,yValues){
+            const data = xValues.map((x, index) => [x, yValues[index]]);
+            const result = regression.polynomial(data, { order: 2 });
+            
+
+            console.log(result);
+
+            const prediction = result.predict(6);
+            console.log('Predicted value of y for x = 6:', prediction);
+
+            // Get the equation
+            console.log('Equation:', result.string);
+            //console.log(result);
+
+            return result;
+        }
+
+        
+        // Renew When?
+
+        function eulerMethod(f, x0, y0, h, xEnd) {
+            let x = x0;
+            let y = y0;
+            let steps = (xEnd - x0) / h;
+        
+            console.log(`Starting from x=${x}, y=${y}`);
+        
+            for (let i = 0; i < steps; i++) {
+                y += h * f(x, y); // Update y using Euler's formula
+                x += h;           // Increment x by step size h
+        
+                //console.log(`After step ${i + 1}: x=${x.toFixed(2)}, y=${y.toFixed(2)}`);
+            }
+        
+            return y;
+        }
+        
+        // Define the differential equation dy/dx = x + y
+        
+        
+        // Initial conditions and parameters
+        
+        function firstOrderPolynomialODE(attributeArray, dtArray, initialXValue, initialYValue, lastXValue){
+
+            dynamicsRecorder();
+            
+            regressionResult = fitPolynomialRegression(attributeArray,dtArray);
+            equationCoefficients = regressionResult.equation;
+
+            const x0 = initialYValue;  // Initial x value
+            const y0 = initialXValue;  // Initial y value
+            const h = 0.1; // Step size
+            const xEnd = lastXValue; // The x value we want to approximate y(xEnd)
+            
+            // Call the solver
+            function differentialEquation(x,y,) {
+                return equationCoefficients[0]*x*x + equationCoefficients[1]*x + equationCoefficients[2];
+            }
+
+            const yEnd = eulerMethod(differentialEquation, x0, y0, h, xEnd);
+            console.log(`Approximate solution at x = ${xEnd}: y = ${yEnd.toFixed(2)}`);
+
+        }
+
+        
+        function firstOrderLinearODE(){
+
+            dynamicsRecorder();
+
+            // Solves dy/dx = k
+
+            let dArea = getArea(objectsWithinPolygon[noOfObjects-1]) - getArea(objectsWithinPolygon[noOfObjects-2]);
+            let dt = getDistance(objectsWithinPolygon[noOfObjects-1],objectsWithinPolygon[noOfObjects-2]);
+            let dAngle = getAngle(objectsWithinPolygon[noOfObjects-1]) - getAngle(objectsWithinPolygon[noOfObjects-2]);
+            let dOpacity = getOpacity(objectsWithinPolygon[noOfObjects-1]) - getOpacity(objectsWithinPolygon[noOfObjects-2]);
+            //let dColor = getColor(objectsWithinPolygon[noOfObjects-1]) - getColor(objectsWithinPolygon[noOfObjects-2]);
+            //let dOpacity = getOpacity(objectsWithinPolygon[noOfObjects-1]) - getArea(objectsWithinPolygon[noOfObjects-2]);
+            
+
+            console.log("Area Difference (dA): ", dArea);
+            console.log("Time Difference (dt): ", dt);
+            console.log("Slope dArea/dt: ", dArea/dt);
+            
+            console.log(getAngle(objectsWithinPolygon[noOfObjects-1]));
+            console.log("Angle Difference (dAngle): ", dAngle);
+            console.log("Slope d(Angle)/dt: ", dAngle/dt);
+
+            console.log(getOpacity(objectsWithinPolygon[noOfObjects-1]));
+            console.log("Opacity Difference (dAngle): ", dOpacity);
+            console.log("Slope d(Opcaity)/dt: ", dOpacity/dt);
+
+            
+
+        }
+
+
+        firstOrderPolynomialODE(dHeightArray,dtArray,initialHeightValue,initialPositionValue,lastXValue=initialPositionValue+300);
+        //firstOrderLinearODE();
+
+        
 
 
         //console.log("Color Difference (dt): ", dColor);
@@ -629,7 +771,10 @@ function startLasso() {
         
     }
 
-    function getDistance(point1, point2) {
+    function getDistance(object1, object2) {
+
+        point1 = object1.getCenterPoint();
+        point2 = object2.getCenterPoint();
 
         const dx = point2.x - point1.x;
         const dy = point2.y - point1.y;
@@ -704,4 +849,8 @@ sliderContainer.addEventListener('mouseleave', function() {
     sliderContainer.style.opacity = '0'; // Fade out when not hovered
     sliderContainer.style.display = 'none';
 });
+
+
+
+
 
