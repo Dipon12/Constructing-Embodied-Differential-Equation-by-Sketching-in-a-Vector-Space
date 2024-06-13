@@ -41,7 +41,7 @@ function copyBrush(){
       if (!isDrawing || !originalObject) return;
     
       let pointer = canvas.getPointer(options.e);
-      if (points.length === 0 || calcDist(points[points.length - 1], pointer) > 300) {
+      if (points.length === 0 || calcDist(points[points.length - 1], pointer) > originalObject.height * 2) { //temporary considering only height
           points.push(pointer);
           copyObjectAt(pointer);
           if (points.length > 1) {
@@ -58,7 +58,7 @@ function copyBrush(){
 
       let newObj = null;
 
-      console.log("Selected shape is a" + originalObject.type);
+      console.log("Selected shape is a " + originalObject.type);
 
         if (originalObject.type === "rect"){
             newObj = new fabric.Rect({
@@ -76,6 +76,10 @@ function copyBrush(){
             strokeWidth: originalObject.strokeWidth,
             opacity: originalObject.opacity
             });
+
+            objectContainer.push(newObj);
+
+
         } else if (originalObject.type === 'circle') {
             newObj = new fabric.Circle({
             left: point.x,
@@ -91,6 +95,8 @@ function copyBrush(){
             angle: originalObject.angle,
             opacity: originalObject.opacity
             });
+
+            objectContainer.push(newObj);
         }
         canvas.add(newObj);
         canvas.renderAll();

@@ -13,7 +13,7 @@ function shapeDrawingStopper(){
 
 
 let polyPoints = [];
-let lasso;
+//let lasso;
 
 function startLasso() {
     shapeDrawingStopper();
@@ -89,23 +89,23 @@ function startLasso() {
             
             let currentObjectCenter = objectContainer[i].getCenterPoint();
 
-            //console.log(currentObjectCenter);
+            console.log("From find objects inside polygon" + currentObjectCenter);
             //console.log(polyPoints.points);
             if(isPointInPolygon(currentObjectCenter, lassoBoundary.points)){
                 
                 if(objectContainer[i].type === 'rect'){
                     rectCounter++;
+                    objectsWithinPolygon.push(objectContainer[i]);
                 } else if(objectContainer[i].type === 'circle'){
                     circleCounter++;
-                }
-
-                objectsWithinPolygon.push(objectContainer[i]);
-
+                    objectsWithinPolygon.push(objectContainer[i]);
+                } 
                 
             }
         }
 
         noOfObjects = objectsWithinPolygon.length;
+        console.log("No of objects within polygon " + noOfObjects);
         
         dHeightArray = [];
         dWidthArray = [];
@@ -137,6 +137,10 @@ function startLasso() {
             }
 
             initialPositionValue = objectsWithinPolygon[0].getCenterPoint();
+
+            console.log("From dynamicsRecorder");
+            console.log(dHeightArray);
+            console.log(dtArray);
 
         }
 
@@ -208,7 +212,7 @@ function startLasso() {
         
         function firstOrderLinearODE(){
 
-            dynamicsRecorder();
+            //dynamicsRecorder();
 
             // Solves dy/dx = k
 
