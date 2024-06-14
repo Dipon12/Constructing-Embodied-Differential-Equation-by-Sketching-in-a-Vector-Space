@@ -62,7 +62,7 @@ function startLasso() {
                 fill: 'transparent',
                 stroke: 'white',
                 strokeWidth: 5,
-                selectable: false,
+                selectable: true,
                 strokeDashArray: [15, 10]
             });
             canvas.add(polygon);
@@ -89,12 +89,14 @@ function startLasso() {
             
             let currentObjectCenter = objectContainer[i].getCenterPoint();
 
-            console.log("From find objects inside polygon" + currentObjectCenter);
+            //console.log("From find objects inside polygon" + objectContainer[i].getCenterPoint());
             //console.log(polyPoints.points);
             if(isPointInPolygon(currentObjectCenter, lassoBoundary.points)){
                 
                 if(objectContainer[i].type === 'rect'){
                     rectCounter++;
+                    //console.log(i + " no. objectContainer height: "+ objectContainer[i].height);
+                    //console.log(i + " no. objectContainer actual height: "+ objectContainer[i].getScaledHeight());
                     objectsWithinPolygon.push(objectContainer[i]);
                 } else if(objectContainer[i].type === 'circle'){
                     circleCounter++;
@@ -120,8 +122,8 @@ function startLasso() {
             for(let i=0; i<noOfObjects-1; i++){
 
                 if(objectsWithinPolygon[i].type === 'rect'){
-                    dHeightArray.push(objectsWithinPolygon[i+1].height - objectsWithinPolygon[i].height);
-                    dWidthArray.push(objectsWithinPolygon[i+1].width - objectsWithinPolygon[i].width);
+                    dHeightArray.push(objectsWithinPolygon[i+1].getScaledHeight() - objectsWithinPolygon[i].getScaledHeight());
+                    dWidthArray.push(objectsWithinPolygon[i+1].getScaledWidth() - objectsWithinPolygon[i].getScaledWidth());
                 } else if(objectsWithinPolygon[i].type === 'circle'){
                     dRadiusArray.push(objectsWithinPolygon[i+1].radius - objectsWithinPolygon[i].radius);
                 }
