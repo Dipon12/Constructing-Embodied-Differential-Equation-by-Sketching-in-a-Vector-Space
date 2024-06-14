@@ -119,21 +119,24 @@ function startLasso() {
 
         function dynamicsRecorder(){
 
-            for(let i=0; i<noOfObjects-1; i++){
+            for(let i=0; i<noOfObjects; i++){
 
                 if(objectsWithinPolygon[i].type === 'rect'){
-                    dHeightArray.push(objectsWithinPolygon[i+1].getScaledHeight() - objectsWithinPolygon[i].getScaledHeight());
-                    dWidthArray.push(objectsWithinPolygon[i+1].getScaledWidth() - objectsWithinPolygon[i].getScaledWidth());
+                    //dHeightArray.push(objectsWithinPolygon[i+1].getScaledHeight() - objectsWithinPolygon[i].getScaledHeight());
+                    dHeightArray.push(objectsWithinPolygon[i].getScaledHeight());
+                    //dWidthArray.push(objectsWithinPolygon[i+1].getScaledWidth() - objectsWithinPolygon[i].getScaledWidth());
                 } else if(objectsWithinPolygon[i].type === 'circle'){
                     dRadiusArray.push(objectsWithinPolygon[i+1].radius - objectsWithinPolygon[i].radius);
                 }
                 
-                dtArray.push(getDistance(objectsWithinPolygon[noOfObjects-1],objectsWithinPolygon[noOfObjects-2]));
+                //dtArray.push(getDistance(objectsWithinPolygon[i-1],objectsWithinPolygon[i-2]));
+
+                dtArray.push(getPolarDistance(objectsWithinPolygon[i]));
             }
 
             if(objectsWithinPolygon[0].type === 'rect'){
-                initialHeightValue = objectsWithinPolygon[0].height;
-                initialWidthValue  = objectsWithinPolygon[0].width;
+                initialHeightValue = objectsWithinPolygon[0].getScaledHeight();
+                initialWidthValue  = objectsWithinPolygon[0].getScaledWidth();
             } else if(objectsWithinPolygon[0].type === 'circle'){
                 initialRadiusValue  = objectsWithinPolygon[0].radius;
             }
@@ -142,19 +145,21 @@ function startLasso() {
 
             console.log("From dynamicsRecorder");
             console.log(dHeightArray);
-            console.log(dtArray);
+            //console.log(dtArray);
 
         }
 
         
         function fitPolynomialRegression(xValues,yValues){
-            const data = xValues.map((x, index) => [x, yValues[index]]);
-            const result = regression.polynomial(data, { order: 2 });
+            let data = xValues.map((x, index) => [x, yValues[index]]);
+            console.log("From Data");
+            console.log(data);
+            let result = regression.polynomial(data, { order: 2 });
             
 
             console.log(result);
 
-            const prediction = result.predict(6);
+            let prediction = result.predict(6);
             console.log('Predicted value of y for x = 6:', prediction);
 
             // Get the equation
@@ -193,7 +198,7 @@ function startLasso() {
 
             dynamicsRecorder();
             
-            regressionResult = fitPolynomialRegression(attributeArray,dtArray);
+            regressionResult = fitPolynomialRegression(dtArray, attributeArray);
             equationCoefficients = regressionResult.equation;
 
             const x0 = initialYValue;  // Initial x value
@@ -280,6 +285,14 @@ function startLasso() {
             return Math.PI * shapeObject.radius * shapeObject.radius;
         }
         
+    }
+
+    function getPolarDistance(objectReceived    ){
+        let xPoint = objectReceived.getCenterPoint().x;
+        let yPoint = objectReceived.getCenterPoint().y;
+
+        return Math.sqrt(xPoint*xPoint+yPoint * yPoint);
+
     }
 
     function getDistance(object1, object2) {
