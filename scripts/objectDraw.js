@@ -129,9 +129,14 @@ function startLasso() {
                     dRadiusArray.push(objectsWithinPolygon[i+1].radius - objectsWithinPolygon[i].radius);
                 }
                 
-                //dtArray.push(getDistance(objectsWithinPolygon[i-1],objectsWithinPolygon[i-2]));
+                if (i == 0){
+                    dtArray.push(getPolarDistance(objectsWithinPolygon[i]))
+                } else {
+                    dtArray.push(getDistance(objectsWithinPolygon[i-1],objectsWithinPolygon[i]) + dtArray[i-1]);
+                }
 
-                dtArray.push(getPolarDistance(objectsWithinPolygon[i]));
+
+                //dtArray.push(getPolarDistance(objectsWithinPolygon[i]));
             }
 
             if(objectsWithinPolygon[0].type === 'rect'){
@@ -144,7 +149,7 @@ function startLasso() {
             initialPositionValue = objectsWithinPolygon[0].getCenterPoint();
 
             console.log("From dynamicsRecorder");
-            console.log(dHeightArray);
+            console.log(dtArray);
             //console.log(dtArray);
 
         }
@@ -287,11 +292,11 @@ function startLasso() {
         
     }
 
-    function getPolarDistance(objectReceived    ){
+    function getPolarDistance(objectReceived){
         let xPoint = objectReceived.getCenterPoint().x;
         let yPoint = objectReceived.getCenterPoint().y;
 
-        return Math.sqrt(xPoint*xPoint+yPoint * yPoint);
+        return Math.sqrt(xPoint*xPoint+yPoint*yPoint);
 
     }
 
