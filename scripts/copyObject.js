@@ -107,8 +107,8 @@ function copyBrush(){
       line = new fabric.Line([start.x, start.y, end.x, end.y], {
           stroke: 'gray',
           strokeWidth: 2,
-          selectable: false,
-          evented: false,
+          selectable: true,
+          //evented: false,
       });
       canvas.add(line);
     }
