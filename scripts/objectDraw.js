@@ -58,20 +58,20 @@ function startLasso() {
     function drawPolygonFromPoints() {
         console.log("Drawing Polygon!");
         if (polyPoints.length > 2) {
-            const polygon = new fabric.Polygon(polyPoints, {
+            let lassoPolygon = new fabric.Polygon(polyPoints, {
                 fill: 'transparent',
                 stroke: 'white',
                 strokeWidth: 5,
                 selectable: true,
                 strokeDashArray: [15, 10]
             });
-            canvas.add(polygon);
-            canvas.sendToBack(polygon);
+            canvas.add(lassoPolygon);
+            canvas.sendToBack(lassoPolygon);
             canvas.renderAll();
             
 
-            findObjectsInsidePolygon(polygon);
-            
+            findObjectsInsidePolygon(lassoPolygon);
+           
         }
     }
 
@@ -79,7 +79,6 @@ function startLasso() {
     function findObjectsInsidePolygon(lassoBoundary) {
 
         let objectsWithinPolygon = [];
-
         let rectCounter = 0;
         let circleCounter = 0;
         let ellipseCounter = 0;
@@ -105,6 +104,9 @@ function startLasso() {
                 
             }
         }
+
+        createGroup(lassoBoundary, objectsWithinPolygon);
+    
 
         noOfObjects = objectsWithinPolygon.length;
         console.log("No of objects within polygon " + noOfObjects);
@@ -280,7 +282,10 @@ function startLasso() {
         }
         return inside;
     }
+
 }
+    
+
 
     function getArea(shapeObject){
 
@@ -322,10 +327,7 @@ function startLasso() {
 }
 
 // Example to start lasso
-document.getElementById('pencil').addEventListener('click', startLasso);
 
-document.getElementById('opacitySlider').addEventListener('input', updateOpacity);
-document.getElementById('opacity').addEventListener('click', opacityModifier);
 function updateOpacity() {
     var activeObject = canvas.getActiveObject();
     console.log(activeObject.type)
@@ -378,3 +380,14 @@ sliderContainer.addEventListener('mouseleave', function() {
     sliderContainer.style.opacity = '0'; // Fade out when not hovered
     sliderContainer.style.display = 'none';
 });
+
+
+document.getElementById('pencil').addEventListener('click', startLasso);
+document.getElementById('opacitySlider').addEventListener('input', updateOpacity);
+document.getElementById('opacity').addEventListener('click', opacityModifier);
+
+
+
+function mainObjectDraw(){
+    
+}
