@@ -207,6 +207,7 @@ function startLasso() {
             
             regressionResult = fitPolynomialRegression(dtArray, attributeArray);
             equationCoefficients = regressionResult.equation;
+            console.log(equationCoefficients);
 
             const x0 = initialYValue;  // Initial x value
             const y0 = initialXValue;  // Initial y value
@@ -214,11 +215,13 @@ function startLasso() {
             const xEnd = lastXValue; // The x value we want to approximate y(xEnd)
             
             // Call the solver
-            function differentialEquation(x,y,) {
+            function differentialEquation(x,y) {
                 return equationCoefficients[0]*x*x + equationCoefficients[1]*x + equationCoefficients[2];
             }
 
-            const yEnd = eulerMethod(differentialEquation, x0, y0, h, xEnd);
+            yEnd = differentialEquation(xEnd);
+
+            //const yEnd = eulerMethod(differentialEquation, x0, y0, h, xEnd);
             console.log(`Approximate solution at x = ${xEnd}: y = ${yEnd.toFixed(2)}`);
 
         }
