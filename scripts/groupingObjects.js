@@ -1,8 +1,8 @@
 let groupObjects = [];
 
-function createGroup(lassoPolygon, objectList){
-    var group = new fabric.Group([lassoPolygon, ...objectList], {
-        subTargetCheck: true,
+function createGroup(lassoPolygon, lineList, objectList){
+    var group = new fabric.Group([lassoPolygon, lineList, ...objectList], {
+        
     });
     canvas.add(group);
 }

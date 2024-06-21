@@ -2,6 +2,7 @@
 let currentPath = null;
 let originalObject = null;
 let points = [];
+let lineList = [];
 let line;
 
 
@@ -11,8 +12,6 @@ let line;
 document.getElementById('highlighter').addEventListener('click', copyBrush);
 
 function copyBrush(){
-
-  
   
     console.log("Clicked Copy Brush!");
     shapeDrawingStopper();
@@ -41,13 +40,18 @@ function copyBrush(){
       if (!isDrawing || !originalObject) return;
     
       let pointer = canvas.getPointer(options.e);
-      if (points.length === 0 || calcDist(points[points.length - 1], pointer) > originalObject.height * 2) { //temporary considering only height
+      if (points.length === 0 || calcDist(points[points.length - 1], pointer) > originalObject.height * 2) { //temporarily considering only height
           points.push(pointer);
           copyObjectAt(pointer);
           if (points.length > 1) {
               drawLineBetween(points[points.length - 2], points[points.length - 1]);
           }
+
+          
+          
       }
+
+      
     });
     
     function calcDist(p1, p2) {
@@ -103,6 +107,7 @@ function copyBrush(){
     }
     
     
+    
     function drawLineBetween(start, end) {
       line = new fabric.Line([start.x, start.y, end.x, end.y], {
           stroke: 'gray',
@@ -110,6 +115,8 @@ function copyBrush(){
           selectable: true,
           //evented: false,
       });
+
+      lineList.push(line);
       canvas.add(line);
     }
     
@@ -133,3 +140,58 @@ function copyBrush(){
 
 
 
+
+
+document.getElementById('upload').addEventListener('click', function() {
+  document.getElementById('csvFileInput').click();
+});
+
+firstLine = true;
+document.getElementById('csvFileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) {
+    console.log("No file found!");
+    return;
+  }
+  console.log("CSV uploaded!");
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+      const text = e.target.result;
+      
+      processData(text);
+  };
+  reader.readAsText(file);
+});
+
+let lastX = canvas.width / 3; // Starting x-coordinate for the first object
+
+function processData(csvData) {
+  let allTextLines = csvData.split(/\r\n|\n/);
+  for (let line of allTextLines) {
+
+      if (firstLine) {
+        firstLine = false; // Skip the first iteration and reset the flag
+        continue;
+      }
+      let data = line.split(',');
+      if (data.length === 4) {
+          let [height, width, opacity, distance] = data.map(Number);
+          console.log("New Rect here:");
+          console.log([height, width, opacity, distance]);
+          let rect = new fabric.Rect({
+              left: lastX + distance*500, // position the new object at a distance from the last one
+              top: 100, // constant y-coordinate
+              fill: 'orange',
+              width: width,
+              height: height,
+              opacity: opacity
+          });
+          canvas.add(rect);
+
+          // Update lastX to be the right edge of the new object
+          lastX = rect.left + rect.width;
+      }
+  }
+  canvas.renderAll();
+}

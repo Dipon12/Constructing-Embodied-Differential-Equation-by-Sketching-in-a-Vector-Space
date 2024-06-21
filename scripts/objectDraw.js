@@ -79,6 +79,7 @@ function startLasso() {
     function findObjectsInsidePolygon(lassoBoundary) {
 
         let objectsWithinPolygon = [];
+        let linesWithinPolygon = [];
         let rectCounter = 0;
         let circleCounter = 0;
         let ellipseCounter = 0;
@@ -87,11 +88,15 @@ function startLasso() {
         for (let i = objectContainer.length - 1; i >= 0; i--) {
             
             let currentObjectCenter = objectContainer[i].getCenterPoint();
+            
 
             //console.log("From find objects inside polygon" + objectContainer[i].getCenterPoint());
             //console.log(polyPoints.points);
             if(isPointInPolygon(currentObjectCenter, lassoBoundary.points)){
                 
+                objectsWithinPolygon.push(objectContainer[i]);
+
+                /*
                 if(objectContainer[i].type === 'rect'){
                     rectCounter++;
                     //console.log(i + " no. objectContainer height: "+ objectContainer[i].height);
@@ -100,12 +105,27 @@ function startLasso() {
                 } else if(objectContainer[i].type === 'circle'){
                     circleCounter++;
                     objectsWithinPolygon.push(objectContainer[i]);
-                } 
+                }*/
                 
             }
+            
         }
 
-        createGroup(lassoBoundary, objectsWithinPolygon);
+        for (let i = lineList.length - 1; i >= 0; i--) {
+            
+            let currentLineCenter = lineList[i].getCenterPoint();
+
+            //console.log("From find objects inside polygon" + objectContainer[i].getCenterPoint());
+            //console.log(polyPoints.points);
+            if(isPointInPolygon(currentLineCenter, lassoBoundary.points)){  
+                linesWithinPolygon.push(lineList[i]);
+            }
+            
+        }
+
+        
+
+        //createGroup(lassoBoundary, linesWithinPolygon, objectsWithinPolygon);
     
 
         noOfObjects = objectsWithinPolygon.length;
