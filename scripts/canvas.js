@@ -420,8 +420,8 @@ function startDrawing(shapeType) {
     
         canvas.on('mouse:up', function() {
             isDrawing = false;
-            
-            objectContainer.push(shape);
+            points = [];
+            //objectContainer.push(shape);
             /*
             if (currentShape === 'rectangle'){
                 rectShape.push(shape);

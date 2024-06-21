@@ -41,13 +41,13 @@ function copyBrush(){
     
       let pointer = canvas.getPointer(options.e);
       if (points.length === 0 || calcDist(points[points.length - 1], pointer) > originalObject.height * 2) { //temporarily considering only height
-          points.push(pointer);
+          //points.push(pointer);
           copyObjectAt(pointer);
-          if (points.length > 1) {
-              drawLineBetween(points[points.length - 2], points[points.length - 1]);
-          }
 
-          
+          drawLine(pointer);
+          /*if (points.length > 1) {
+              drawLineBetween(points[points.length - 2], points[points.length - 1]);
+          }*/
           
       }
 
@@ -106,27 +106,16 @@ function copyBrush(){
         canvas.renderAll();
     }
     
-    
-    
-    function drawLineBetween(start, end) {
-      line = new fabric.Line([start.x, start.y, end.x, end.y], {
-          stroke: 'gray',
-          strokeWidth: 2,
-          selectable: true,
-          //evented: false,
-      });
-
-      lineList.push(line);
-      canvas.add(line);
-    }
-    
     function finishDrawing() {
       points = [];
       originalObject = null;
     }
     
     canvas.on('mouse:up', function(options) {
-      if (isDrawing) finishDrawing();
+      if (isDrawing){
+        console.log("Drawing finished!");
+        finishDrawing();
+      }
     });
 
 
@@ -139,7 +128,25 @@ function copyBrush(){
 };
 
 
+function drawLine(pointer){
+  points.push(pointer);
+  if (points.length > 1) {
+    drawLineBetween(points[points.length - 2], points[points.length - 1]);
+  }
+}
 
+function drawLineBetween(start, end) {
+  line = new fabric.Line([start.x, start.y, end.x, end.y], {
+      stroke: 'gray',
+      strokeWidth: 2,
+      selectable: true,
+      //evented: false,
+  });
+
+  lineList.push(line);
+  canvas.sendToBack(line)
+  canvas.add(line);
+}
 
 
 document.getElementById('upload').addEventListener('click', function() {
@@ -176,18 +183,20 @@ function processData(csvData) {
       }
       let data = line.split(',');
       if (data.length === 4) {
-          let [height, width, opacity, distance] = data.map(Number);
+          let [distance, height, width, opacity ] = data.map(Number);
           console.log("New Rect here:");
-          console.log([height, width, opacity, distance]);
+          console.log([distance, height, width, opacity]);
           let rect = new fabric.Rect({
-              left: lastX + distance*500, // position the new object at a distance from the last one
-              top: 100, // constant y-coordinate
+              left: lastX + distance, // position the new object at a distance from the last one
+              top: 100 - height/2, // constant y-coordinate
               fill: 'orange',
               width: width,
               height: height,
               opacity: opacity
           });
           canvas.add(rect);
+          objectContainer.push(rect);
+          drawLine(rect.getCenterPoint());
 
           // Update lastX to be the right edge of the new object
           lastX = rect.left + rect.width;
