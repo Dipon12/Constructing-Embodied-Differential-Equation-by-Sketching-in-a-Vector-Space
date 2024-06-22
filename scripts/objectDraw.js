@@ -13,6 +13,7 @@ function shapeDrawingStopper(){
 
 
 let polyPoints = [];
+let attributeName = "height";
 //let lasso;
 
 function startLasso() {
@@ -71,9 +72,44 @@ function startLasso() {
             
 
             findObjectsInsidePolygon(lassoPolygon);
+            createTextInput(lassoPolygon);
            
         }
     }
+
+
+
+    function createTextInput(polygon) {
+        const bound = polygon.getBoundingRect();
+        const inputDiv = document.createElement('div');
+        inputDiv.style.position = 'absolute';
+        inputDiv.style.left = `${bound.left + bound.width}px`;
+        inputDiv.style.top = `${bound.top}px`;
+      
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Enter label';
+      
+        const submitButton = document.createElement('button');
+        submitButton.textContent = 'Submit';
+        submitButton.onclick = function() {
+          attributeName = input.value;
+          const text = new fabric.Text(input.value, {
+            left: bound.left + 5,
+            top: bound.top + 5,
+            fontSize: 14,
+            fill: 'black'
+          });
+          canvas.add(text);
+          document.body.removeChild(inputDiv);  // This line removes the input field from the DOM.
+        };
+      
+        inputDiv.appendChild(input);
+        inputDiv.appendChild(submitButton);
+        document.body.appendChild(inputDiv);
+      }
+      
+      
 
     
     function findObjectsInsidePolygon(lassoBoundary) {
@@ -133,23 +169,49 @@ function startLasso() {
         
         dHeightArray = [];
         dWidthArray = [];
+        dAreaArray = [];
         dRadiusArray = [];
         dOpacityArray = [];
         dtArray = [];
         initialHeightValue = 0;
         initialPositionValue = 0;
 
-        function dynamicsRecorder(){
+        function dynamicsRecorder(attributeName){
 
             for(let i=0; i<noOfObjects; i++){
 
                 if(objectsWithinPolygon[i].type === 'rect'){
+
+                    if(attributeName == "height"){
+                        dHeightArray.push(objectsWithinPolygon[i].getScaledHeight());
+                        return dHeightArray;
+                    } else if(attributeName == "width"){
+                        dWidthArray.push(objectsWithinPolygon[i].getScaledWidth());
+                        return dWidthArray;
+                    } else if(attributeName == "area"){
+                        dAreaArray.push(objectsWithinPolygon[i].getScaledWidth() * objectsWithinPolygon[i].getScaledHeight());
+                        return dAreaArray;
+                    } else if(attributeName == "opacity"){
+                        dOpacityArray.push(objectsWithinPolygon[i].getOpacity());
+                        return dOpacityArray;
+                    }
+
                     //dHeightArray.push(objectsWithinPolygon[i+1].getScaledHeight() - objectsWithinPolygon[i].getScaledHeight());
-                    dHeightArray.push(objectsWithinPolygon[i].getScaledHeight());
+                    
                     //dWidthArray.push(objectsWithinPolygon[i+1].getScaledWidth() - objectsWithinPolygon[i].getScaledWidth());
                 } else if(objectsWithinPolygon[i].type === 'circle'){
-                    dRadiusArray.push(objectsWithinPolygon[i+1].radius - objectsWithinPolygon[i].radius);
-                }
+                    if(attributeName == "radius"){
+                        dRadiusArray.push(objectsWithinPolygon[i+1].radius - objectsWithinPolygon[i].radius);
+                        return dRadiusArray;
+                    } else if(attributeName == "area"){
+                        dAreaArray.push(objectsWithinPolygon[i].getArea());
+                        return dAreaArray;
+                    } else if(attributeName == "opacity"){
+                        dOpacityArray.push(objectsWithinPolygon[i].getOpacity());
+                        return dOpacityArray;
+                    }
+                    
+                } 
                 
                 if (i == 0){
                     dtArray.push(getPolarDistance(objectsWithinPolygon[i]))
@@ -162,8 +224,10 @@ function startLasso() {
             }
 
             if(objectsWithinPolygon[0].type === 'rect'){
-                initialHeightValue = objectsWithinPolygon[0].getScaledHeight();
-                initialWidthValue  = objectsWithinPolygon[0].getScaledWidth();
+                initialHeightValue = dHeightArray[0];
+                initialWidthValue  = dWidthArray[0];
+                initialAreaValue = dAreaArray[0];
+                initialOpacityValue = dOpacityArray[0];
             } else if(objectsWithinPolygon[0].type === 'circle'){
                 initialRadiusValue  = objectsWithinPolygon[0].radius;
             }
@@ -213,7 +277,7 @@ function startLasso() {
                 //console.log(`After step ${i + 1}: x=${x.toFixed(2)}, y=${y.toFixed(2)}`);
             }
         
-            return y;
+            return y;  
         }
         
         // Define the differential equation dy/dx = x + y
@@ -221,9 +285,9 @@ function startLasso() {
         
         // Initial conditions and parameters
         
-        function firstOrderPolynomialODE(attributeArray, dtArray, initialXValue, initialYValue, lastXValue){
+        function firstOrderPolynomialODE(attributeName, dtArray, initialXValue, initialYValue, lastXValue){
 
-            dynamicsRecorder();
+            attributeArray = dynamicsRecorder(attributeName);
             
             regressionResult = fitPolynomialRegression(dtArray, attributeArray);
             equationCoefficients = regressionResult.equation;
@@ -277,8 +341,8 @@ function startLasso() {
 
         }
 
-
-        firstOrderPolynomialODE(dHeightArray,dtArray,initialHeightValue,initialPositionValue,lastXValue=initialPositionValue+300);
+        
+        firstOrderPolynomialODE(attributeName,dtArray,initialHeightValue,initialPositionValue,lastXValue=initialPositionValue+300);
         //firstOrderLinearODE();
 
         
@@ -350,6 +414,8 @@ function startLasso() {
 }
 
 // Example to start lasso
+
+
 
 function updateOpacity() {
     var activeObject = canvas.getActiveObject();
