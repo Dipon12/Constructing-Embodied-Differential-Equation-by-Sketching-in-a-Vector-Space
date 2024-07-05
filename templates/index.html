@@ -5,10 +5,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Drawing Tablet</title>
-  <link rel="stylesheet" href="style.css" />
+  <!-- <link rel="stylesheet" href="style.css" />
   <script src = "lib/jquery.min.js"></script>
   <script src = "lib/fabric.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script> -->
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='javascripts/lib/jquery.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='javascripts/lib/fabric.min.js') }}"></script>
+
 
 </head>
 <body>
@@ -22,20 +27,24 @@
   
   <div class="dt-control-container">
     <div class="dt-tools-container">
-      <img src="./assets/pencil.svg" title="Brush" id="pencil" alt="" />
+      <!-- <img src="./assets/pencil.svg" title="Brush" id="pencil" alt="" /> -->
+      <img src="{{ url_for('static', filename='assets/pencil.svg') }}" title="Brush" id="pencil" alt="">
     </div>
     <div class="dt-tools-container">
-      <img src="./assets/highlighter.svg" title="Copy Brush" id="highlighter" alt="" />
+      <!-- <img src="./assets/highlighter.svg" title="Copy Brush" id="highlighter" alt="" /> -->
+      <img src="{{ url_for('static', filename='assets/highlighter.svg') }}" title="Copy Brush" id="highlighter" alt="">
     </div>
     <div class="dt-tools-container">
-      <img src="./assets/eraser.png" title="Eraser" id="eraser" alt="" />
+      <img src="{{ url_for('static', filename='assets/eraser.png') }}" title="Eraser" id="eraser" alt="" />
     </div>
     <div class="dt-tools-container" style="margin-right: 0.8rem">
-      <img src="./assets/clear-all.png" title="clear" id="clear" alt="" />
+      <!-- <img src="./assets/clear-all.png" title="clear" id="clear" alt="" /> -->
+      <img src="{{ url_for('static', filename='assets/clear-all.png') }}" title="clear" id="clear" alt="" />
     </div>
 
     <div class="dt-tools-container">
-      <img src="./assets/x1.png" title="dx" id="dx" alt=""/>
+      <!-- <img src="./assets/x1.png" title="dx" id="dx" alt=""/> -->
+      <img src="{{ url_for('static', filename='assets/x1.png') }}" title="dx" id="dx" alt="" />
     </div>
 
     
@@ -97,10 +106,12 @@
 
     <div class="dt-undo-redo-container">
       <div class="">
-        <img src="./assets/opacity.png" title="opacity" id="opacity" alt="" />
+        <!-- <img src="./assets/opacity.png" title="opacity" id="opacity" alt="" /> -->
+        <img src="{{ url_for('static', filename='assets/opacity.png') }}" title="opacity" id="opacity" alt="" />
       </div>
       <div class="">
-        <img src="./assets/brightness.png" title="brightness" id="brightness" alt="" />       
+        <!-- <img src="./assets/brightness.png" title="brightness" id="brightness" alt="" /> -->
+        <img src="{{ url_for('static', filename='assets/brightness.png') }}" title="brightness" id="brightness" alt=""/>  
       </div>
 
       <div class="sliderContainer" id="opacitySliderContainer" style="display:none;">
@@ -119,19 +130,26 @@
     
     
     <div class="dt-download-container">
-      <img src="./assets/upload.png" title="Download (Ctrl + E)" id="upload" alt="" />
+      <!-- <img src="./assets/upload.png" title="Download (Ctrl + E)" id="upload" alt="" /> -->
+      <img src="{{ url_for('static', filename='assets/upload.png') }}" title="Download (Ctrl + E)" id="upload" alt=""/>
       <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+
     </div>
     
   </div>
 
   
+  <script src="{{ url_for('static', filename='javascripts/scripts/canvas.js') }}"></script>
+  <script src="{{ url_for('static', filename='javascripts/scripts/objectDraw.js') }}"></script>
+  <script src="{{ url_for('static', filename='javascripts/scripts/copyObject.js') }}"></script>
+  <script src="{{ url_for('static', filename='javascripts/scripts/groupingObjects.js') }}"></script>
 
-  
-  <script src = "./scripts/canvas.js"></script>
+
+
+  <!-- <script src = "./scripts/canvas.js"></script>
   <script src = "./scripts/objectDraw.js"></script>
   <script src = "./scripts/copyObject.js"></script>
-  <script src = "./scripts/groupingObjects.js"></script>
+  <script src = "./scripts/groupingObjects.js"></script> -->
 
 </body>
 

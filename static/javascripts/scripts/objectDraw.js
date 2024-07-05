@@ -44,6 +44,7 @@ function startLasso() {
         canvas.isDrawingMode = false; // Stop drawing mode
         drawPolygonFromPoints(); // Call to draw polygon from recorded points
         polyPoints = []; // Reset points array
+
     });
 
     function removePencilStrokes() {
@@ -72,7 +73,8 @@ function startLasso() {
             
 
             findObjectsInsidePolygon(lassoPolygon);
-            createTextInput(lassoPolygon);
+            //createTextInput(lassoPolygon);
+            
            
         }
     }
@@ -176,11 +178,88 @@ function startLasso() {
         initialHeightValue = 0;
         initialPositionValue = 0;
 
-        function dynamicsRecorder(attributeName){
+        function dynamicsRecorder(attributeNames){
+
+
+            let attributeData = {};
+
+            attributeNames.forEach(attr => attributeData[attr] = []);
+        
+        
+            for (let i = 0; i < noOfObjects; i++) {
+                const currentObject = objectsWithinPolygon[i];
+        
+                // Calculate time difference
+                if (i == 0) {
+                    dtArray.push(0);
+                } else {
+                    dtArray.push(getDistance(objectsWithinPolygon[i - 1], currentObject) + dtArray[i - 1]);
+                }
+        
+                // Calculate attribute-specific values for each requested attribute
+                if (currentObject.type === 'rect') {
+
+                    attributeNames.forEach(attr => {
+                    
+                        switch (attr) {
+                            case "height":
+                                attributeData[attr].push(currentObject.getScaledHeight());
+                                break;
+                            case "width":
+                                attributeData[attr].push(currentObject.getScaledWidth());
+                                break;
+                            case "area":
+                                attributeData[attr].push(currentObject.getScaledWidth() * currentObject.getScaledHeight());
+                                break;
+                            
+                            // case "opacity":
+                            //     attributeData[attr].push(currentObject.getOpacity());
+                            //     break;
+                        }
+                    });
+                } else if (currentObject.type === 'circle') {
+                    attributeNames.forEach(attr => {
+                        switch (attr) {
+                            case "radius":
+                                attributeData[attr].push(currentObject.radius); // or perhaps 0 or some initial value
+                                break;
+                            case "area":
+                                //attributeData[attr].push(currentObject.getArea());
+                                //break;
+                            // case "opacity":
+                            //     attributeData[attr].push(currentObject.getOpacity());
+                            //     break;
+                        }
+                    });
+                }
+            }
+        
+            // Include dtArray in the return value
+            attributeData["time"] = dtArray;
+
+            console.log("Inside Dynamics Recorder");
+            console.log(attributeData);
+            return attributeData;
+        
+
+
+            /*
 
             for(let i=0; i<noOfObjects; i++){
 
                 if(objectsWithinPolygon[i].type === 'rect'){
+                    dHeightArray.push(objectsWithinPolygon[i].getScaledHeight());
+                    dWidthArray.push(objectsWithinPolygon[i].getScaledWidth());
+                    dAreaArray.push(objectsWithinPolygon[i].getScaledWidth() * objectsWithinPolygon[i].getScaledHeight());
+                    //dOpacityArray.push(objectsWithinPolygon[i].getOpacity());
+                }else if(objectsWithinPolygon[i].type === 'circle'){
+                    dRadiusArray.push(objectsWithinPolygon[i+1].radius - objectsWithinPolygon[i].radius);
+                    dAreaArray.push(objectsWithinPolygon[i].getArea());
+                    //dOpacityArray.push(objectsWithinPolygon[i].getOpacity());
+                }
+            
+
+                    
 
                     if(attributeName == "height"){
                         dHeightArray.push(objectsWithinPolygon[i].getScaledHeight());
@@ -211,10 +290,11 @@ function startLasso() {
                         return dOpacityArray;
                     }
                     
-                } 
+                }
+            
                 
                 if (i == 0){
-                    dtArray.push(getPolarDistance(objectsWithinPolygon[i]))
+                    dtArray.push(0)
                 } else {
                     dtArray.push(getDistance(objectsWithinPolygon[i-1],objectsWithinPolygon[i]) + dtArray[i-1]);
                 }
@@ -237,6 +317,8 @@ function startLasso() {
             console.log("From dynamicsRecorder");
             console.log(dtArray);
             //console.log(dtArray);
+
+            */
 
         }
 
@@ -280,15 +362,33 @@ function startLasso() {
             return y;  
         }
         
-        // Define the differential equation dy/dx = x + y
         
-        
-        // Initial conditions and parameters
-        
-        function firstOrderPolynomialODE(attributeName, dtArray, initialXValue, initialYValue, lastXValue){
-
-            attributeArray = dynamicsRecorder(attributeName);
+        async function firstOrderPolynomialODE(attributeNames, dtArray, initialXValue, initialYValue, lastXValue){
+            console.log("This is attributeNames");
+            console.log(attributeNames);
             
+            attributeData = dynamicsRecorder(attributeNames); //attributeNames is a list of the required attributes
+            let dataArray = [];
+
+            countAttributes = attributeNames.length;
+
+            for (var i = 0; i < countAttributes; i++) {
+
+                attribute = attributeNames[i];
+                if (attribute !== 'time') {  // Assuming you want to exclude the 'time' array
+                    console.log(`Processing data for attribute: ${attribute}`);
+                    dataArray = attributeData[attribute];
+                }
+            }
+
+            timeArray = attributeData['time'];
+            console.log("Inside First Order Polynomial");
+            console.log(dataArray);
+
+            result = await sendArrays(timeArray, dataArray)
+            console.log(result)
+            
+            /*
             regressionResult = fitPolynomialRegression(dtArray, attributeArray);
             equationCoefficients = regressionResult.equation;
             console.log(equationCoefficients);
@@ -307,7 +407,9 @@ function startLasso() {
 
             //const yEnd = eulerMethod(differentialEquation, x0, y0, h, xEnd);
             console.log(`Approximate solution at x = ${xEnd}: y = ${yEnd.toFixed(2)}`);
+            */
 
+            
         }
 
         
@@ -342,7 +444,7 @@ function startLasso() {
         }
 
         
-        firstOrderPolynomialODE(attributeName,dtArray,initialHeightValue,initialPositionValue,lastXValue=initialPositionValue+300);
+        firstOrderPolynomialODE(attributeNames = ['height'],dtArray,initialHeightValue,initialPositionValue,lastXValue=initialPositionValue+300);
         //firstOrderLinearODE();
 
         
@@ -477,6 +579,20 @@ document.getElementById('opacity').addEventListener('click', opacityModifier);
 
 
 
-function mainObjectDraw(){
-    
+async function sendArrays(timeArray, attributeArray) {
+    const data = { timeArray, attributeArray };
+
+    console.log("Inside sendArrays");
+    console.log(attributeArray);
+    console.log("Inside sendArrays dataArray");
+    console.log(data);
+    const response = await fetch('http://127.0.0.1:5000/diff_eqn_generation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+    const result = await response.json();
+    console.log('Processed result:', result);  // Processed result from Python
 }
