@@ -150,17 +150,17 @@ function drawLineBetween(start, end) {
 
 
 document.getElementById('upload').addEventListener('click', function() {
-  document.getElementById('csvFileInput').click();
+  document.getElementById('fileInput').click();
 });
 
 firstLine = true;
-document.getElementById('csvFileInput').addEventListener('change', function(e) {
+document.getElementById('fileInput').addEventListener('change', function(e) {
   const file = e.target.files[0];
   if (!file) {
     console.log("No file found!");
     return;
   }
-  console.log("CSV uploaded!");
+  console.log("TSV uploaded!");
   
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -173,6 +173,7 @@ document.getElementById('csvFileInput').addEventListener('change', function(e) {
 
 let lastX = canvas.width / 3; // Starting x-coordinate for the first object
 
+/*
 function processData(csvData) {
   let allTextLines = csvData.split(/\r\n|\n/);
   for (let line of allTextLines) {
@@ -203,4 +204,46 @@ function processData(csvData) {
       }
   }
   canvas.renderAll();
+}
+
+*/
+
+
+function processData(tsvData) {
+  let allTextLines = tsvData.split(/\r\n|\n/); // Split the data into lines
+  let firstLine = true; // Flag to skip the first line (usually headers)
+  let lastX = 0; // Initialize lastX to keep track of the x-coordinate of the last rectangle
+  let objectContainer = []; // Initialize a container to store rectangle objects
+
+  for (let line of allTextLines) {
+      if (firstLine) {
+          firstLine = false; // Skip the first iteration and reset the flag
+          continue;
+      }
+      let data = line.split('\t'); // Split the line into columns using the tab delimiter
+      if (data.length === 4) {
+          let [distance, height, width, opacity] = data.map(Number); // Convert all elements to numbers
+          console.log("New Rect here:");
+          console.log([distance, height, width, opacity]);
+
+          let rect = new fabric.Rect({
+              left: lastX + distance, // Position the new object at a distance from the last one
+              top: 100 - height / 2, // Constant y-coordinate
+              fill: 'orange', // Set the fill color
+              width: width,
+              height: height,
+              opacity: opacity
+          });
+
+          canvas.add(rect); // Add the rectangle to the canvas
+          objectContainer.push(rect); // Store the rectangle in the container
+          if (rect.getCenterPoint) { // Check if the method exists
+              drawLine(rect.getCenterPoint()); // Draw a line (function needs to be defined)
+          }
+
+          // Update lastX to be the right edge of the new object
+          lastX = rect.left + rect.width;
+      }
+  }
+  canvas.renderAll(); // Render all elements on the canvas
 }
