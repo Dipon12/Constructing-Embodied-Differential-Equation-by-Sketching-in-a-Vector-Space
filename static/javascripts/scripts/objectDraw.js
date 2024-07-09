@@ -180,7 +180,6 @@ function startLasso() {
 
         function dynamicsRecorder(attributeNames){
 
-
             let attributeData = {};
 
             attributeNames.forEach(attr => attributeData[attr] = []);
@@ -231,7 +230,70 @@ function startLasso() {
                             //     break;
                         }
                     });
+                } else if (currentObject.type === 'polygon') {
+                    const points = currentObject.points;
+                    const numberOfSides = points.length;
+                    
+                    if (numberOfSides === 4) {  // Assume it's a rectangle
+                        attributeNames.forEach(attr => {
+                            let sideLengths = points.map((point, index) => {
+                                let nextPoint = points[(index + 1) % points.length];  // Wrap around to the first point
+                                return Math.sqrt(Math.pow(point.x - nextPoint.x, 2) + Math.pow(point.y - nextPoint.y, 2));
+                            });
+                
+                            switch (attr) {
+                                case "height":
+                                    // Assuming the shorter two sides are the height
+                                    let height = Math.min(...sideLengths);
+                                    attributeData[attr].push(height);
+                                    break;
+                                case "width":
+                                    // Assuming the longer two sides are the width
+                                    let width = Math.max(...sideLengths);
+                                    attributeData[attr].push(width);
+                                    break;
+                                case "area":
+                                    // Area is the product of the lengths of two adjacent sides
+                                    let area = sideLengths[0] * sideLengths[1];
+                                    attributeData[attr].push(area);
+                                    break;
+                            }
+                        });
+                    } else if (numberOfSides === 3) {  // Triangle
+                        attributeNames.forEach(attr => {
+                            let sideLengths = points.map((point, index) => {
+                                let nextPoint = points[(index + 1) % points.length];
+                                return Math.sqrt(Math.pow(point.x - nextPoint.x, 2) + Math.pow(point.y - nextPoint.y, 2));
+                            });
+                
+                            let base = sideLengths[0];  // Assume the first side is the base
+                            let height = (2 / base) * Math.sqrt(heron(sideLengths) * (heron(sideLengths) - sideLengths[0]) * (heron(sideLengths) - sideLengths[1]) * (heron(sideLengths) - sideLengths[2]));
+                
+                            switch (attr) {
+                                case "height":
+                                    attributeData[attr].push(height);
+                                    break;
+                                case "width":
+                                    // Semantically, use another side as 'width'
+                                    let width = sideLengths[1];
+                                    attributeData[attr].push(width);
+                                    break;
+                                case "area":
+                                    // Area using Heron's formula indirectly via base and height calculated above
+                                    let area = 0.5 * base * height;
+                                    attributeData[attr].push(area);
+                                    break;
+                            }
+                        });
+                    }
                 }
+                
+                
+            }
+
+            // Helper function to calculate semi-perimeter for Heron's formula
+            function heron(lengths) {
+                return (lengths[0] + lengths[1] + lengths[2]) / 2;
             }
         
             // Include dtArray in the return value

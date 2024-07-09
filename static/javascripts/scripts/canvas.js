@@ -35,8 +35,6 @@ var canvas = new fabric.Canvas('c',{
     top: 40,
     fill: "white",
     strokeWidth: 4,
-    stroke: "green",
-    strokeDashArray: [10,5]
  });
  
  // Adding it to the canvas

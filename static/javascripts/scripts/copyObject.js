@@ -213,7 +213,7 @@ function processData(tsvData) {
   let allTextLines = tsvData.split(/\r\n|\n/); // Split the data into lines
   let firstLine = true; // Flag to skip the first line (usually headers)
   let lastX = 0; // Initialize lastX to keep track of the x-coordinate of the last rectangle
-  let objectContainer = []; // Initialize a container to store rectangle objects
+  //let objectContainer = []; // Initialize a container to store rectangle objects
 
   for (let line of allTextLines) {
       if (firstLine) {
@@ -221,29 +221,47 @@ function processData(tsvData) {
           continue;
       }
       let data = line.split('\t'); // Split the line into columns using the tab delimiter
-      if (data.length === 4) {
-          let [distance, height, width, opacity] = data.map(Number); // Convert all elements to numbers
-          console.log("New Rect here:");
-          console.log([distance, height, width, opacity]);
+      if (data.length === 3) {
+          let coordinates = parseCoordinates(data[0]); // Parse the coordinates from the first column
 
-          let rect = new fabric.Rect({
-              left: lastX + distance, // Position the new object at a distance from the last one
-              top: 100 - height / 2, // Constant y-coordinate
-              fill: 'orange', // Set the fill color
-              width: width,
-              height: height,
-              opacity: opacity
+          //console.log("Inside processData", coordinates);
+          let fillColor = data[1]; // Fill color from the second column
+          let opacity = parseFloat(data[2]); // Convert all elements to numbers
+          console.log("New Object here:");
+          console.log([coordinates, fillColor, opacity]);
+
+          let poly = new fabric.Polygon(coordinates, {
+                fill: fillColor,
+                opacity: opacity
           });
 
-          canvas.add(rect); // Add the rectangle to the canvas
-          objectContainer.push(rect); // Store the rectangle in the container
-          if (rect.getCenterPoint) { // Check if the method exists
-              drawLine(rect.getCenterPoint()); // Draw a line (function needs to be defined)
+          canvas.add(poly); // Add the rectangle to the canvas
+
+          objectContainer.push(poly); // Store the rectangle in the container
+          if (poly.getCenterPoint) { // Check if the method exists
+              drawLine(poly.getCenterPoint()); // Draw a line (function needs to be defined)
           }
 
           // Update lastX to be the right edge of the new object
-          lastX = rect.left + rect.width;
       }
   }
   canvas.renderAll(); // Render all elements on the canvas
+}
+
+function parseCoordinates(coordString) {
+  // Extract coordinate pairs, assuming they are in the format (x1,y1),(x2,y2),...
+  //console.log("Inside parseCoordinates", coordString);
+  let coordPairs = coordString.match(/\(([^)]+)\)/g); // Match text within parentheses
+  if (!coordPairs) return []; // Return an empty array if no matches
+
+  //console.log("Inside parseCoordinates", coordPairs);
+
+  return coordPairs.map(pair => {
+      // Remove parentheses and split by comma
+      const coords = pair.replace(/[()]/g, '').split(',');
+      return {
+          x: parseFloat(coords[0]), // Convert x to number
+          y: parseFloat(coords[1])  // Convert y to number
+      };
+  });
 }
