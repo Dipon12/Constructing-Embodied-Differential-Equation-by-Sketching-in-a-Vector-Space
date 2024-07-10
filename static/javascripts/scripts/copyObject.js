@@ -171,43 +171,6 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
   reader.readAsText(file);
 });
 
-let lastX = canvas.width / 3; // Starting x-coordinate for the first object
-
-/*
-function processData(csvData) {
-  let allTextLines = csvData.split(/\r\n|\n/);
-  for (let line of allTextLines) {
-
-      if (firstLine) {
-        firstLine = false; // Skip the first iteration and reset the flag
-        continue;
-      }
-      let data = line.split(',');
-      if (data.length === 4) {
-          let [distance, height, width, opacity ] = data.map(Number);
-          console.log("New Rect here:");
-          console.log([distance, height, width, opacity]);
-          let rect = new fabric.Rect({
-              left: lastX + distance, // position the new object at a distance from the last one
-              top: 100 - height/2, // constant y-coordinate
-              fill: 'orange',
-              width: width,
-              height: height,
-              opacity: opacity
-          });
-          canvas.add(rect);
-          objectContainer.push(rect);
-          drawLine(rect.getCenterPoint());
-
-          // Update lastX to be the right edge of the new object
-          lastX = rect.left + rect.width;
-      }
-  }
-  canvas.renderAll();
-}
-
-*/
-
 
 function processData(tsvData) {
   let allTextLines = tsvData.split(/\r\n|\n/); // Split the data into lines
@@ -282,6 +245,13 @@ function downloadJSON(json, filename) {
   downloadAnchorNode.click();
   downloadAnchorNode.remove();
 }
+
+
+
+document.getElementById('uploadJSON').addEventListener('click', function() {
+  document.getElementById('fileInput').click();
+});
+
 
 document.getElementById('fileInput').addEventListener('change', function(e) {
   const file = e.target.files[0];
