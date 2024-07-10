@@ -132,7 +132,21 @@
     
     <div class="dt-download-container">
       <!-- <img src="./assets/upload.png" title="Download (Ctrl + E)" id="upload" alt="" /> -->
-      <img src="{{ url_for('static', filename='assets/upload.png') }}" title="Download (Ctrl + E)" id="upload" alt=""/>
+      <img src="{{ url_for('static', filename='assets/upload.png') }}" title="Upload tsv" id="upload" alt=""/>
+      <input type="file" id="fileInput" accept=".txt" style="display: none;">
+
+    </div>
+
+    <div class="dt-download-container">
+      <!-- <img src="./assets/upload.png" title="Download (Ctrl + E)" id="upload" alt="" /> -->
+      <img src="{{ url_for('static', filename='assets/downloadJSON.png') }}" title="Download " id="downloadJSON" alt=""/>
+      <input type="file" id="fileInput" accept=".txt" style="display: none;">
+
+    </div>
+
+    <div class="dt-download-container">
+      <!-- <img src="./assets/upload.png" title="Download (Ctrl + E)" id="upload" alt="" /> -->
+      <img src="{{ url_for('static', filename='assets/uploadJSON.png') }}" title="Upload JSON" id="uploadJSON" alt=""/>
       <input type="file" id="fileInput" accept=".txt" style="display: none;">
 
     </div>
