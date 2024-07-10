@@ -265,3 +265,41 @@ function parseCoordinates(coordString) {
       };
   });
 }
+
+
+
+document.getElementById('downloadJSON').addEventListener('click', function() {
+  var json = canvas.toJSON(); // Serialize the canvas to JSON
+  downloadJSON(json, 'canvasBackup');
+});
+
+function downloadJSON(json, filename) {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href", dataStr);
+  downloadAnchorNode.setAttribute("download", filename + ".json");
+  document.body.appendChild(downloadAnchorNode);
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+      const json = JSON.parse(e.target.result);
+      canvas.loadFromJSON(json, canvas.renderAll.bind(canvas));
+  };
+  reader.readAsText(file);
+});
+
+function loadCanvasFromJSON(json) {
+  canvas.loadFromJSON(json, function() {
+      canvas.renderAll();
+      // Callback function if you need to do something after the canvas is rendered
+      console.log('Canvas loaded from JSON.');
+  });
+}
+
+
