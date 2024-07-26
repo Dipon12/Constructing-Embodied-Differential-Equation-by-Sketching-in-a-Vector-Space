@@ -32,19 +32,19 @@
       <img src="{{ url_for('static', filename='assets/pencil.svg') }}" title="Brush" id="pencil" alt="">
     </div>
     <div class="dt-tools-container">
-      <!-- <img src="./assets/highlighter.svg" title="Copy Brush" id="highlighter" alt="" /> -->
+      <img src="{{ url_for('static', filename='assets/pencil.svg') }}" title="Pendulum" id="pendulum" alt="">
+    </div>
+    <div class="dt-tools-container">
       <img src="{{ url_for('static', filename='assets/highlighter.svg') }}" title="Copy Brush" id="highlighter" alt="">
     </div>
     <div class="dt-tools-container">
       <img src="{{ url_for('static', filename='assets/eraser.png') }}" title="Eraser" id="eraser" alt="" />
     </div>
     <div class="dt-tools-container" style="margin-right: 0.8rem">
-      <!-- <img src="./assets/clear-all.png" title="clear" id="clear" alt="" /> -->
       <img src="{{ url_for('static', filename='assets/clear-all.png') }}" title="clear" id="clear" alt="" />
     </div>
 
     <div class="dt-tools-container">
-      <!-- <img src="./assets/x1.png" title="dx" id="dx" alt=""/> -->
       <img src="{{ url_for('static', filename='assets/x1.png') }}" title="dx" id="dx" alt="" />
     </div>
 
@@ -67,7 +67,6 @@
       </div>
 
       <input type="number" min="1" max="100" id="size" value="3" />
-       <!-- Button to trigger drawing -->
     </div>
     
     
@@ -107,7 +106,6 @@
 
     <div class="dt-undo-redo-container">
       <div class="">
-        <!-- <img src="./assets/opacity.png" title="opacity" id="opacity" alt="" /> -->
         <img src="{{ url_for('static', filename='assets/opacity.png') }}" title="opacity" id="opacity" alt="" />
       </div>
       <div class="">
@@ -131,7 +129,6 @@
     
     
     <div class="dt-download-container">
-      <!-- <img src="./assets/upload.png" title="Download (Ctrl + E)" id="upload" alt="" /> -->
       <img src="{{ url_for('static', filename='assets/upload.png') }}" title="Upload tsv" id="upload" alt=""/>
       <input type="file" id="fileInput" accept=".txt" style="display: none;">
 
@@ -139,14 +136,12 @@
 
 
     <div class="dt-download-container">
-      <!-- <img src="./assets/upload.png" title="Download (Ctrl + E)" id="upload" alt="" /> -->
       <img src="{{ url_for('static', filename='assets/uploadJSON.png') }}" title="Upload JSON" id="uploadJSON" alt=""/>
       <input type="file" id="fileInput" accept=".txt" style="display: none;">
 
     </div>
 
     <div class="dt-download-container">
-      <!-- <img src="./assets/upload.png" title="Download (Ctrl + E)" id="upload" alt="" /> -->
       <img src="{{ url_for('static', filename='assets/downloadJSON.png') }}" title="Download " id="downloadJSON" alt=""/>
       <input type="file" id="fileInput" accept=".txt" style="display: none;">
 

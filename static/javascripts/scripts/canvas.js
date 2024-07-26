@@ -650,19 +650,6 @@ function startDrawing(shapeType) {
         canvas.on('mouse:up', function() {
             isDrawing = false;
             points = [];
-            //objectContainer.push(shape);
-            /*
-            if (currentShape === 'rectangle'){
-                rectShape.push(shape);
-                console.log("New Rectangle Added");
-                console.log(shape.type);
-                console.log(shape.getCenterPoint().x);
-            } else if (currentShape === 'circle') {
-                circShape.push(shape);
-                console.log("New Circle Added");
-            } else if (shapeType === 'ellipse') {
-                ellipseShape.push(shape);
-            }*/
         });
 
     }
