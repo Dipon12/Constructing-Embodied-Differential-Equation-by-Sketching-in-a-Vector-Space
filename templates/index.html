@@ -48,19 +48,26 @@
       <img src="{{ url_for('static', filename='assets/x1.png') }}" title="dx" id="dx" alt="" />
     </div>
 
+    <div class="slider-container" id="slider">
+      <div class="slider-label" data-level="1">Level 1</div>
+      <div class="slider-label" data-level="2">Level 2</div>
+      <div class="slider-label" data-level="3">Level 3</div>
+      <div class="slider-label" data-level="4">Level 4</div>
+    </div>
+
     
 
-    <div class="dt-tools-container">
-      <div class="dt-button-container">
-        <select id="shape-selector">
-          <option value="Shape Select" selected>Select Shape</option>
-            <option value="rectangle">Rectangle</option>
-            <option value="circle">Circle</option>
-            <option value="triangle">Triangle</option>
-            <option value="ellipse">Ellipse</option>
-            <option value="polygon">Polygon</option>
-        </select>
-      </div>
+  <div class="dt-tools-container">
+    <div class="dt-button-container">
+      <select id="shape-selector">
+        <option value="Shape Select" selected>Select Shape</option>
+          <option value="rectangle">Rectangle</option>
+          <option value="circle">Circle</option>
+          <option value="triangle">Triangle</option>
+          <option value="ellipse">Ellipse</option>
+          <option value="polygon">Polygon</option>
+      </select>
+    </div>
       
       <div class="dt-button-container" >
         <button id="stop-drawing">Stop Drawing</button>
@@ -152,6 +159,7 @@
   
   <script src="{{ url_for('static', filename='javascripts/scripts/canvas.js') }}"></script>
   <script src="{{ url_for('static', filename='javascripts/scripts/objectDraw.js') }}"></script>
+<script src="{{ url_for('static', filename='javascripts/scripts/predefinedFunc.js') }}"></script>
   <script src="{{ url_for('static', filename='javascripts/scripts/copyObject.js') }}"></script>
   <script src="{{ url_for('static', filename='javascripts/scripts/groupingObjects.js') }}"></script>
 

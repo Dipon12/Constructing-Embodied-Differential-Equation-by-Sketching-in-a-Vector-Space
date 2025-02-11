@@ -273,3 +273,39 @@ body {
   width: 10000px; /* very large area */
   height: 10000px;
 }
+
+#vertical-slider {
+  position: absolute;
+  display: flex;
+  align-items: center;  /* Align slider and labels side by side */
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity 1s ease-out;  /* Fade-out transition */
+  background: transparent;  /* Transparent background */
+}
+
+/* Style for the slider (rotated to display vertically) */
+#vertical-slider input[type="range"] {
+  transform: rotate(-90deg); /* Rotate so that it displays vertically */
+  width: 150px;              /* Effective slider length */
+}
+
+/* Container for the level labels, placed to the right of the slider */
+#vertical-slider .labels {
+  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 150px;  /* Match the effective slider length */
+}
+
+/* Style for each label */
+#vertical-slider .label {
+  font-size: 12px;
+  color: #FFFFFF;
+}
+
+/* This class is added when the slider is fading out */
+#vertical-slider.fade-out {
+  opacity: 0;
+}

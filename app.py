@@ -4,6 +4,7 @@ import numpy as np
 from pysr import PySRRegressor
 from flask_cors import CORS
 import pysindy as ps
+import numpy as np
 
 app = Flask(__name__ )
 CORS(app, support_credentials=True) 
@@ -53,13 +54,15 @@ def diff_eqn_generation():
     }
     """
 
-    x = np.array(data['timeArray'])
+    t = np.array(data['timeArray'])
     #x= x.reshape(-1,1)
-    x = x/1000
+    #x = x/1000
 
-    y = np.array(data['attributeArray'])
-    y = y/1000
+    x = np.array(data['attributeArray'])
+    #y = y/1000
     #y = y.reshape(-1,1)
+
+    omega = np.gradient(x,t)
     """
     
     
@@ -89,17 +92,20 @@ def diff_eqn_generation():
     differentiated_expr = diff(expr, x0)
     """
 
-    X = np.stack((y, x), axis= -1)
-    t = x #timeArray
+    X = np.stack((omega, x, t), axis= -1)
+    
 
     poly_lib = ps.PolynomialLibrary(degree = 2)
     fourier_lib = ps.FourierLibrary()
 
     tensor_lib = poly_lib + fourier_lib 
 
-    optimizer = ps.STLSQ(threshold=0.1)
+    optimizer = ps.STLSQ(threshold=0.7)
     #optimizer = ps.SR3(threshold=0.2, trimming_fraction=0.1)
-    model = ps.SINDy(feature_names=["x", "t"], feature_library=tensor_lib, optimizer = optimizer, discrete_time = False)
+    model = ps.SINDy(feature_names=["omega","x", "t"], 
+                     feature_library=tensor_lib, 
+                     optimizer = optimizer, 
+                     discrete_time = False)
     #model_2 = ps.SINDy()
     model.fit(X, t=t)
         
