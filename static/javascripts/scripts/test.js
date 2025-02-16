@@ -77,6 +77,7 @@ function addSidebarButtons() {
   const BUTTON_SIZE = 30; // Increased size for better visibility
   const BUTTON_X = 10; // Adjusted for better alignment
   const THIRD_SECTION_BUTTON_Y = 2 * SECTION_HEIGHT + 20; // Position at top left of third section with better spacing
+  const shapeButtonGap = 10;
 
 
   // Second Section Buttons
@@ -110,8 +111,41 @@ function addSidebarButtons() {
 
 
 
+  // Circle Button
+  circleButton = createButton('⭕');
+  circleButton.position(BUTTON_X, THIRD_SECTION_BUTTON_Y + BUTTON_SIZE + shapeButtonGap);
+  circleButton.size(BUTTON_SIZE, BUTTON_SIZE);
+  circleButton.style('background-color', '#333333');
+  circleButton.style('border', '2px solid black');
+  circleButton.style('border-radius', '10px');
+  circleButton.style('font-size', '12px');
+  circleButton.style('cursor', 'pointer');
+  circleButton.style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.3)');
+  circleButton.mousePressed(drawCircle);
 
+  // Square Button
+  squareButton = createButton('■');
+  squareButton.position(BUTTON_X + BUTTON_SIZE + shapeButtonGap, THIRD_SECTION_BUTTON_Y + BUTTON_SIZE+ shapeButtonGap);
+  squareButton.size(BUTTON_SIZE, BUTTON_SIZE);
+  squareButton.style('background-color', '#333333');
+  squareButton.style('border', '2px solid black');
+  squareButton.style('border-radius', '10px');
+  squareButton.style('font-size', '12px');
+  squareButton.style('cursor', 'pointer');
+  squareButton.style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.3)');
+  squareButton.mousePressed(drawSquare);
 
+  // Triangle Button
+  triangleButton = createButton('△');
+  triangleButton.position(BUTTON_X + 2*(BUTTON_SIZE + shapeButtonGap), THIRD_SECTION_BUTTON_Y + BUTTON_SIZE+ shapeButtonGap);
+  triangleButton.size(BUTTON_SIZE, BUTTON_SIZE);
+  triangleButton.style('background-color', '#333333');
+  triangleButton.style('border', '2px solid black');
+  triangleButton.style('border-radius', '10px');
+  triangleButton.style('font-size', '12px');
+  triangleButton.style('cursor', 'pointer');
+  triangleButton.style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.3)');
+  triangleButton.mousePressed(drawTriangle);
   
 }
 
@@ -147,6 +181,41 @@ function windowResized() {
   drawGrid();
   drawSidebar();
   addSidebarButtons();
+}
+
+
+function drawCircle() {
+  // Calculate the center of the drawing area (excluding the sidebar)
+  let shapeX = 200 + (width - 200) / 2;
+  let shapeY = height / 2;
+  stroke(255); // white border
+  strokeWeight(2);
+  fill('#FFA500'); // orange fill
+  ellipse(shapeX, shapeY, 100, 100);
+}
+
+function drawSquare() {
+  let shapeX = 200 + (width - 200) / 2;
+  let shapeY = height / 2;
+  stroke(255);
+  strokeWeight(2);
+  fill('#32CD32'); // grass green fill
+  rectMode(CENTER);
+  rect(shapeX, shapeY, 100, 100);
+  rectMode(CORNER); // Reset back to default
+}
+
+function drawTriangle() {
+  let shapeX = 200 + (width - 200) / 2;
+  let shapeY = height / 2;
+  stroke(255);
+  strokeWeight(2);
+  fill('#ADD8E6'); // light blue fill
+  // Define vertices for an equilateral triangle centered at (shapeX, shapeY)
+  let halfWidth = 50;
+  let topY = shapeY - 40;
+  let bottomY = shapeY + 40;
+  triangle(shapeX, topY, shapeX - halfWidth, bottomY, shapeX + halfWidth, bottomY);
 }
 
 
