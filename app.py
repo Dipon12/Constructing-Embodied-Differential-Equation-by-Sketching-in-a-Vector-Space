@@ -11,7 +11,7 @@ CORS(app, support_credentials=True)
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index2.html')
 
 @app.route('/diff_eqn_generation', methods=['POST'])
 def diff_eqn_generation():
