@@ -15,7 +15,7 @@ const p5Instance = new p5((p) => {
 
   p.draw = function () {
     // Call the draw function from the sketch instance
-    p.drawSidebar();
+    sketchInstance.drawSidebar();
   };
 
   p.windowResized = function () {

@@ -1,0 +1,152 @@
+// sketch.js - Main entry point for the p5.js application
+import { drawGrid } from './interface/grid.js';
+import { drawSidebar, addSidebarButtons } from './interface/sidebar.js';
+import { Pendulum, activatePendulumTool } from './tools/pendulumTool.js';
+import { activatePencilTool } from './tools/pencilTool.js';
+import { drawMovableObjects, hitTest, getObjectCenter, moveObjectTo } from './utils/objectManager.js';
+import { drawCircle } from './shapes/circleShape.js';
+import { drawSquare } from './shapes/squareShape.js';
+import { drawTriangle } from './shapes/triangleShape.js';
+import { GroupObject } from './utils/groupObject.js';
+import { 
+  copyBrushButtonTool, 
+  handleCopyBrushMousePressed, 
+  handleCopyBrushMouseDragged, 
+  handleCopyBrushMouseReleased, 
+  drawCopyBrushElements,
+  isCopyBrushModeActive
+} from './tools/copyBrushTool.js';
+import { equationBrushButtonTool } from './tools/equationBrushTool.js';
+import { calculatorFunction, addCalculatorInterface } from './tools/calculator.js';
+
+// Global variables
+let pendulumLayer, pendulum;
+window.drawing = false;
+let isPendulumActive = false;
+let cellSize;
+
+window.drawing = drawing;
+
+// Expose functions globally for button callbacks
+window.activatePendulumTool = activatePendulumTool;
+window.activatePencilTool = activatePencilTool;
+window.drawCircle = drawCircle;
+window.drawSquare = drawSquare;
+window.drawTriangle = drawTriangle;
+window.copyBrushButtonTool = copyBrushButtonTool;
+window.equationBrushButtonTool = equationBrushButtonTool;
+window.calculatorFunction = calculatorFunction;
+
+// Create a new p5 instance
+const sketch = (p) => {
+  p.setup = function() {
+    p.createCanvas(p.windowWidth, p.windowHeight);
+    updateGridSize(p);
+
+    pendulumLayer = p.createGraphics(p.windowWidth, p.windowHeight);
+    pendulumLayer.clear();
+
+    // Initial draw of background, grid, sidebar and UI buttons
+    p.background('#181818');
+    drawGrid(p);
+    drawSidebar(p);
+    addSidebarButtons(p);
+    addCalculatorInterface(p);
+  };
+
+  p.draw = function() {
+    // Clear background each frame
+    p.background('#181818');
+    drawGrid(p);
+    drawSidebar(p);
+    drawMovableObjects(p);
+    
+    // Draw copy brush elements (loop and selection)
+    drawCopyBrushElements(p);
+
+    if (isPendulumActive && pendulum) {
+      pendulumLayer.clear();
+      pendulum.update();
+      pendulum.displayOnLayer(pendulumLayer);
+    }
+    p.image(pendulumLayer, 0, 0);
+  };
+
+  p.mousePressed = function() {
+    // Only allow interactions in the drawing area (outside the sidebar)
+    if (p.mouseX < 200) return;
+    
+    // Check for copy brush interactions first
+    if (handleCopyBrushMousePressed(p)) {
+      return;
+    }
+
+    // Check if mouse is over a movable object (topmost first)
+    for (let i = window.movableObjects.length - 1; i >= 0; i--) {
+      let obj = window.movableObjects[i];
+      if (hitTest(obj, p.mouseX, p.mouseY, p)) {
+        window.selectedObject = obj;
+        let center = getObjectCenter(obj);
+        window.dragOffset.x = p.mouseX - center.x;
+        window.dragOffset.y = p.mouseY - center.y;
+        return;
+      }
+    }
+
+    // If no object hit and pencil mode is active, start a new free-hand stroke
+    if (drawing) {
+      window.currentStroke = { type: "stroke", points: [{ x: p.mouseX, y: p.mouseY }] };
+    }
+  };
+
+  p.mouseDragged = function() {
+    // Check for copy brush interactions first
+    if (handleCopyBrushMouseDragged(p)) {
+      return;
+    }
+    
+    if (window.selectedObject) {
+      let newCenterX = p.mouseX - window.dragOffset.x;
+      let newCenterY = p.mouseY - window.dragOffset.y;
+      moveObjectTo(window.selectedObject, newCenterX, newCenterY);
+    } else if (drawing && window.currentStroke) {
+      window.currentStroke.points.push({ x: p.mouseX, y: p.mouseY });
+    }
+  };
+
+  p.mouseReleased = function() {
+    // Check for copy brush interactions first
+    if (handleCopyBrushMouseReleased(p)) {
+      return;
+    }
+    
+    if (window.selectedObject) {
+      window.selectedObject = null;
+    } else if (drawing && window.currentStroke) {
+      window.movableObjects.push(window.currentStroke);
+      window.currentStroke = null;
+    }
+  };
+
+  p.windowResized = function() {
+    p.resizeCanvas(p.windowWidth, p.windowHeight);
+    p.background('#181818');
+    drawGrid(p);
+    drawSidebar(p);
+    addSidebarButtons(p);
+    addCalculatorInterface(p);
+  };
+};
+
+function updateGridSize(p) {
+  cellSize = p.max(50, p.min(100, p.width / 20));
+}
+
+// Initialize global state
+window.movableObjects = [];
+window.currentStroke = null;
+window.selectedObject = null;
+window.dragOffset = { x: 0, y: 0 };
+
+// Create the p5 instance
+new p5(sketch);

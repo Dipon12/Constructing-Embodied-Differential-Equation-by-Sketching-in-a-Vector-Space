@@ -15,7 +15,6 @@ let selectedObject = null;
 let dragOffset = { x: 0, y: 0 };
 
 // --- Define functions early so they are in scope ---
-
 function activatePendulumTool() {
   isPendulumActive = !isPendulumActive;
   if (isPendulumActive) {
@@ -47,7 +46,7 @@ function setup() {
   pendulumLayer = createGraphics(windowWidth, windowHeight);
   pendulumLayer.clear();
 
-  // Draw background, grid, sidebar, and UI buttons initially.
+  // Initial draw of background, grid, sidebar and UI buttons.
   background('#181818');
   drawGrid();
   drawSidebar();
@@ -124,8 +123,9 @@ function addCalculatorInterface() {
   // Slightly smaller buttons.
   const buttonWidth = 40;
   const buttonHeight = 25;
+  const rowDisplayGap = 10;
 
-  const firstRowY = margin + displayHeight + gap;
+  const firstRowY = margin + displayHeight + gap + rowDisplayGap;
   const secondRowY = firstRowY + buttonHeight + gap;
   const thirdRowY = secondRowY + buttonHeight + gap;
   const fourthRowY = thirdRowY + buttonHeight + gap;
@@ -330,6 +330,31 @@ function addSidebarButtons() {
   pencilButton.style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.3)');
   pencilButton.mousePressed(activatePencilTool);
 
+  // Copy Brush Button (Brush Icon)
+  copyBrushButton = createButton('🖌️'); 
+  copyBrushButton.position(BUTTON_X + BUTTON_SIZE + shapeButtonGap, THIRD_SECTION_BUTTON_Y);
+  copyBrushButton.size(BUTTON_SIZE, BUTTON_SIZE);
+  copyBrushButton.style('background-color', '#333333');
+  copyBrushButton.style('border', '2px solid black');
+  copyBrushButton.style('border-radius', '10px');
+  copyBrushButton.style('font-size', '16px');
+  copyBrushButton.style('cursor', 'pointer');
+  copyBrushButton.style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.3)');
+  copyBrushButton.mousePressed(copyBrushButtonTool);
+
+  // Equation Button (Greek letter Icon)
+  equationBrushButton = createButton('𝛑');
+  equationBrushButton.position(BUTTON_X + 2*(BUTTON_SIZE + shapeButtonGap), THIRD_SECTION_BUTTON_Y);
+  equationBrushButton.size(BUTTON_SIZE, BUTTON_SIZE);
+  equationBrushButton.style('background-color', '#333333');
+  equationBrushButton.style('border', '2px solid black');
+  equationBrushButton.style('border-radius', '10px');
+  equationBrushButton.style('font-size', '16px');
+  equationBrushButton.style('cursor', 'pointer');
+  equationBrushButton.style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.3)');
+  equationBrushButton.mousePressed(equationBrushButtonTool);
+
+
   circleButton = createButton('⭕');
   circleButton.position(BUTTON_X, THIRD_SECTION_BUTTON_Y + BUTTON_SIZE + shapeButtonGap);
   circleButton.size(BUTTON_SIZE, BUTTON_SIZE);
@@ -364,6 +389,15 @@ function addSidebarButtons() {
   triangleButton.mousePressed(drawTriangle);
 }
 
+
+function copyBrushButtonTool(){
+  console.log("Copy Brush Pressed");
+}
+
+function equationBrushButtonTool(){
+  console.log("Equation Brush Pressed");
+}
+
 // --- Object Creation Functions ---
 function drawCircle() {
   let shapeX = 200 + (width - 200) / 2;
@@ -388,6 +422,7 @@ function drawTriangle() {
 
 // --- Drawing Movable Objects ---
 function drawMovableObjects() {
+  // Draw stored objects.
   for (let obj of movableObjects) {
     if (obj.type === "circle") {
       fill(255, 150);
@@ -416,6 +451,17 @@ function drawMovableObjects() {
       }
       endShape();
     }
+  }
+  // Draw current free-hand stroke in real-time if it exists.
+  if (currentStroke) {
+    stroke(255);
+    strokeWeight(2);
+    noFill();
+    beginShape();
+    for (let p of currentStroke.points) {
+      vertex(p.x, p.y);
+    }
+    endShape();
   }
 }
 

@@ -44,5 +44,5 @@ export function sketch(p) {
   };
 
   // Expose sidebar drawing function (so it can be called from index.js)
-
+  
 }
