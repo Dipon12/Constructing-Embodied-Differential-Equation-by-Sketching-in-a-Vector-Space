@@ -194,4 +194,4 @@ export function calculatorFunction(op) {
     let current = calculatorDisplay.value();
     calculatorDisplay.value(current + op);
   }
-}
+}   

@@ -60,7 +60,7 @@ export function drawSidebar(p) {
     window.copyBrushButton.style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.3)');
     window.copyBrushButton.mousePressed(window.copyBrushButtonTool);
   
-    // Equation Button
+    // Equation Button - Disabled
     window.equationBrushButton = p.createButton('𝛑');
     window.equationBrushButton.position(BUTTON_X + 2*(BUTTON_SIZE + shapeButtonGap), THIRD_SECTION_BUTTON_Y);
     window.equationBrushButton.size(BUTTON_SIZE, BUTTON_SIZE);
@@ -69,8 +69,12 @@ export function drawSidebar(p) {
     window.equationBrushButton.style('border-radius', '10px');
     window.equationBrushButton.style('font-size', '16px');
     window.equationBrushButton.style('cursor', 'pointer');
+    window.equationBrushButton.style('opacity', '0.5'); // Make it look disabled
     window.equationBrushButton.style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.3)');
-    window.equationBrushButton.mousePressed(window.equationBrushButtonTool);
+    // Don't attach the function to keep it disabled
+    window.equationBrushButton.mousePressed(() => { 
+      console.log("Equation tool is currently disabled");
+    });
   
     // Circle Button
     window.circleButton = p.createButton('⭕');

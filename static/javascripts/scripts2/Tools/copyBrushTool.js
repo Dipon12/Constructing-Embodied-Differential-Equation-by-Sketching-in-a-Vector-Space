@@ -31,7 +31,7 @@ export function copyBrushButtonTool() {
   }
 }
 
-export function handleCopyBrushMousePressed(p) {
+export function handleCopyBrushPointerDown(p) {
   if (!isCopyBrushActive) return false;
   
   // If we're already dragging a copy, place it
@@ -48,32 +48,32 @@ export function handleCopyBrushMousePressed(p) {
   // Start a new copy loop
   currentCopyLoop = {
     type: "copyLoop",
-    points: [{ x: p.mouseX, y: p.mouseY }],
+    points: [{ x: p.pointerX, y: p.pointerY }],
     isClosed: false
   };
   
   return true;
 }
 
-export function handleCopyBrushMouseDragged(p) {
+export function handleCopyBrushPointerMove(p) {
   if (!isCopyBrushActive) return false;
   
   if (currentCopyLoop && !currentCopyLoop.isClosed) {
     // Add point to the loop
-    currentCopyLoop.points.push({ x: p.mouseX, y: p.mouseY });
+    currentCopyLoop.points.push({ x: p.pointerX, y: p.pointerY });
     return true;
   }
   
   if (copySelection && isDraggingCopy) {
-    // Move the copy selection to follow the mouse
-    copySelection.moveTo(p.mouseX, p.mouseY);
+    // Move the copy selection to follow the pointer
+    copySelection.moveTo(p.pointerX, p.pointerY);
     return true;
   }
   
   return false;
 }
 
-export function handleCopyBrushMouseReleased(p) {
+export function handleCopyBrushPointerUp(p) {
   if (!isCopyBrushActive) return false;
   
   if (currentCopyLoop && !currentCopyLoop.isClosed) {

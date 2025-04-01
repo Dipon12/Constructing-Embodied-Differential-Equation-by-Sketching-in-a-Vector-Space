@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template
-from sympy import *
+#from sympy import *
 import numpy as np
 from pysr import PySRRegressor
 from flask_cors import CORS

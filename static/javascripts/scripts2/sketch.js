@@ -1,8 +1,8 @@
 // sketch.js - Main entry point for the p5.js application
 import { drawGrid } from './interface/grid.js';
 import { drawSidebar, addSidebarButtons } from './interface/sidebar.js';
-import { Pendulum, activatePendulumTool } from './tools/pendulumTool.js';
-import { activatePencilTool } from './tools/pencilTool.js';
+import { Pendulum, activatePendulumTool, handlePendulumPointerEvents } from './tools/pendulumTool.js';
+import { activatePencilTool, handlePencilPointerDown, handlePencilPointerMove, handlePencilPointerUp } from './tools/pencilTool.js';
 import { drawMovableObjects, hitTest, getObjectCenter, moveObjectTo } from './utils/objectManager.js';
 import { drawCircle } from './shapes/circleShape.js';
 import { drawSquare } from './shapes/squareShape.js';
@@ -10,13 +10,18 @@ import { drawTriangle } from './shapes/triangleShape.js';
 import { GroupObject } from './utils/groupObject.js';
 import { 
   copyBrushButtonTool, 
-  handleCopyBrushMousePressed, 
-  handleCopyBrushMouseDragged, 
-  handleCopyBrushMouseReleased, 
+  handleCopyBrushPointerDown, 
+  handleCopyBrushPointerMove, 
+  handleCopyBrushPointerUp, 
   drawCopyBrushElements,
   isCopyBrushModeActive
 } from './tools/copyBrushTool.js';
-import { equationBrushButtonTool } from './tools/equationBrushTool.js';
+
+import { 
+  equationBrushButtonTool, 
+  
+} from './tools/equationBrushTool.js'; 
+
 import { calculatorFunction, addCalculatorInterface } from './tools/calculator.js';
 
 // Global variables
@@ -52,6 +57,7 @@ const sketch = (p) => {
     drawSidebar(p);
     addSidebarButtons(p);
     addCalculatorInterface(p);
+    
   };
 
   p.draw = function() {
@@ -72,60 +78,124 @@ const sketch = (p) => {
     p.image(pendulumLayer, 0, 0);
   };
 
-  p.mousePressed = function() {
-    // Only allow interactions in the drawing area (outside the sidebar)
-    if (p.mouseX < 200) return;
+  // Add pointer properties to make them accessible in the same way as mouse properties
+  p.updatePointerCoords = function(event) {
+    const rect = p.canvas.getBoundingClientRect();
+    // Get coordinates in CSS pixels (no devicePixelRatio multiplication)
+    p.pointerX = event.clientX - rect.left;
+    p.pointerY = event.clientY - rect.top;
+  };
+
+  p.pointerPressed = function(event) {
+    p.updatePointerCoords(event);
     
-    // Check for copy brush interactions first
-    if (handleCopyBrushMousePressed(p)) {
+    // Only allow interactions in the drawing area (outside the sidebar)
+    if (p.pointerX < 200) return;
+    
+    // Check for pendulum interactions
+    if (handlePendulumPointerEvents(p, 'down')) {
+      return;
+    }
+    
+    // Check for copy brush interactions
+    if (handleCopyBrushPointerDown(p)) {
       return;
     }
 
-    // Check if mouse is over a movable object (topmost first)
+    // Check if pointer is over a movable object (topmost first)
     for (let i = window.movableObjects.length - 1; i >= 0; i--) {
       let obj = window.movableObjects[i];
-      if (hitTest(obj, p.mouseX, p.mouseY, p)) {
+      if (hitTest(obj, p.pointerX, p.pointerY, p)) {
         window.selectedObject = obj;
         let center = getObjectCenter(obj);
-        window.dragOffset.x = p.mouseX - center.x;
-        window.dragOffset.y = p.mouseY - center.y;
+        window.dragOffset.x = p.pointerX - center.x;
+        window.dragOffset.y = p.pointerY - center.y;
         return;
       }
     }
 
     // If no object hit and pencil mode is active, start a new free-hand stroke
     if (drawing) {
-      window.currentStroke = { type: "stroke", points: [{ x: p.mouseX, y: p.mouseY }] };
+      handlePencilPointerDown(p);
     }
   };
 
-  p.mouseDragged = function() {
-    // Check for copy brush interactions first
-    if (handleCopyBrushMouseDragged(p)) {
+  p.pointerDragged = function(event) {
+    p.updatePointerCoords(event);
+    
+    // Check for pendulum interactions
+    if (handlePendulumPointerEvents(p, 'move')) {
+      return;
+    }
+    
+    // Check for copy brush interactions
+    if (handleCopyBrushPointerMove(p)) {
       return;
     }
     
     if (window.selectedObject) {
-      let newCenterX = p.mouseX - window.dragOffset.x;
-      let newCenterY = p.mouseY - window.dragOffset.y;
+      let newCenterX = p.pointerX - window.dragOffset.x;
+      let newCenterY = p.pointerY - window.dragOffset.y;
       moveObjectTo(window.selectedObject, newCenterX, newCenterY);
-    } else if (drawing && window.currentStroke) {
-      window.currentStroke.points.push({ x: p.mouseX, y: p.mouseY });
+    } else if (drawing) {
+      handlePencilPointerMove(p);
     }
   };
 
-  p.mouseReleased = function() {
-    // Check for copy brush interactions first
-    if (handleCopyBrushMouseReleased(p)) {
+  p.pointerReleased = function(event) {
+    p.updatePointerCoords(event);
+    
+    // Check for pendulum interactions
+    if (handlePendulumPointerEvents(p, 'up')) {
+      return;
+    }
+    
+    // Check for copy brush interactions
+    if (handleCopyBrushPointerUp(p)) {
       return;
     }
     
     if (window.selectedObject) {
       window.selectedObject = null;
-    } else if (drawing && window.currentStroke) {
-      window.movableObjects.push(window.currentStroke);
-      window.currentStroke = null;
+    } else if (drawing) {
+      handlePencilPointerUp(p);
     }
+  };
+
+  // Set up pointer event listeners
+  p.setup = function() {
+    p.createCanvas(p.windowWidth, p.windowHeight);
+    updateGridSize(p);
+
+    pendulumLayer = p.createGraphics(p.windowWidth, p.windowHeight);
+    pendulumLayer.clear();
+
+    // Initial draw of background, grid, sidebar and UI buttons
+    p.background('#181818');
+    drawGrid(p);
+    drawSidebar(p);
+    addSidebarButtons(p);
+    addCalculatorInterface(p);
+    
+    // Add pointer event listeners to the canvas
+    p.canvas.addEventListener('pointerdown', p.pointerPressed);
+
+    
+    p.canvas.addEventListener('pointermove', function(event) {
+      // Only consider it a drag if the pointer is down
+      if (event.buttons > 0) {
+        p.pointerDragged(event);
+      }
+    });
+
+
+
+    p.canvas.addEventListener('pointerup', p.pointerReleased);
+    p.canvas.addEventListener('pointercancel', p.pointerReleased);
+    p.canvas.addEventListener('pointerleave', p.pointerReleased);
+    
+    // Prevent touch scrolling on the canvas
+    p.canvas.style.touchAction = 'none';
   };
 
   p.windowResized = function() {
