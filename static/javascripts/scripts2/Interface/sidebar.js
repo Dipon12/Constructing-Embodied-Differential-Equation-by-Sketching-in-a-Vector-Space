@@ -72,9 +72,7 @@ export function drawSidebar(p) {
     window.equationBrushButton.style('opacity', '0.5'); // Make it look disabled
     window.equationBrushButton.style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.3)');
     // Don't attach the function to keep it disabled
-    window.equationBrushButton.mousePressed(() => { 
-      console.log("Equation tool is currently disabled");
-    });
+    window.equationBrushButton.mousePressed(window.equationBrushButtonTool);
   
     // Circle Button
     window.circleButton = p.createButton('⭕');

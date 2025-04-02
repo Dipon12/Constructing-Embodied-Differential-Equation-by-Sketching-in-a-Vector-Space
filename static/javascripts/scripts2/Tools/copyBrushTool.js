@@ -1,12 +1,21 @@
-// copyBrushTool.js - Handles the copy brush tool functionality
+// copyBrushTool.js - Improved to handle group dragging and continuous copying
 import { drawSingleObject } from '../utils/objectManager.js';
 import { GroupObject } from '../utils/groupObject.js';
+import { 
+  createSelectionLoop,
+  addPointToLoop,
+  closeSelectionLoop,
+  hideSelectionLoop,
+  drawSelectionLoop,
+  findObjectsInsideLoop
+} from '../utils/selectionLoop.js';
 
 let isCopyBrushActive = false;
 let currentCopyLoop = null;
-let copySelection = null;
+let copyTemplate = null;  // Store the original group as a template
+let copySelection = null; // Current copy being dragged
 let isDraggingCopy = false;
-let copyOffset = { x: 0, y: 0 };
+let isPlacingNewCopy = false; // Flag to track if we're creating a new copy or moving an existing one
 
 export function copyBrushButtonTool() {
   isCopyBrushActive = !isCopyBrushActive;
@@ -17,9 +26,23 @@ export function copyBrushButtonTool() {
     window.pencilButton.style('background-color', '#333333');
   }
   
+  // Deactivate equation brush if active
+  if (window.equationBrushButton && window.equationBrushButton.style('background-color') === 'rgb(204, 204, 204)') {
+    window.equationBrushButtonTool();
+  }
+  
   // Reset the drawing state
   if (window.currentStroke) {
     window.currentStroke = null;
+  }
+
+  // Reset copy state when deactivating
+  if (!isCopyBrushActive) {
+    currentCopyLoop = null;
+    copyTemplate = null;
+    copySelection = null;
+    isDraggingCopy = false;
+    isPlacingNewCopy = false;
   }
 
   if (window.copyBrushButton) {
@@ -31,65 +54,87 @@ export function copyBrushButtonTool() {
   }
 }
 
-export function handleCopyBrushPointerDown(p) {
+export function handleCopyBrushMousePressed(p) {
   if (!isCopyBrushActive) return false;
   
   // If we're already dragging a copy, place it
   if (copySelection && isDraggingCopy) {
-    isDraggingCopy = false;
+    // Only add to movable objects if it's a new copy
+    if (isPlacingNewCopy) {
+      // Add the group object to movable objects array
+      window.movableObjects.push(copySelection);
+      isDraggingCopy = false;
+      copySelection = null;
+      
+      // Create a new copy to continue dragging
+      createNewCopyFromTemplate(p);
+      isDraggingCopy = true;
+      isPlacingNewCopy = true;
+    } else {
+      // Just stop dragging
+      isDraggingCopy = false;
+      copySelection = null;
+    }
     
-    // Add the group object to movable objects array
-    window.movableObjects.push(copySelection);
-    
-    copySelection = null;
     return true;
   }
   
-  // Start a new copy loop
-  currentCopyLoop = {
-    type: "copyLoop",
-    points: [{ x: p.pointerX, y: p.pointerY }],
-    isClosed: false
-  };
-  
-  return true;
+  // Start a new copy loop if we don't have a template yet
+  if (!copyTemplate) {
+    currentCopyLoop = {
+      type: "copyLoop",
+      ...createSelectionLoop(p.mouseX, p.mouseY)
+    };
+    return true;
+  } else {
+    // Create a new copy from the template when clicking without dragging
+    createNewCopyFromTemplate(p);
+    isDraggingCopy = true;
+    isPlacingNewCopy = true; // Mark as a new copy being placed
+    return true;
+  }
 }
 
-export function handleCopyBrushPointerMove(p) {
+export function handleCopyBrushMouseDragged(p) {
   if (!isCopyBrushActive) return false;
   
   if (currentCopyLoop && !currentCopyLoop.isClosed) {
     // Add point to the loop
-    currentCopyLoop.points.push({ x: p.pointerX, y: p.pointerY });
+    addPointToLoop(currentCopyLoop, p.mouseX, p.mouseY);
     return true;
   }
   
   if (copySelection && isDraggingCopy) {
-    // Move the copy selection to follow the pointer
-    copySelection.moveTo(p.pointerX, p.pointerY);
+    // Move the copy selection to follow the mouse
+    copySelection.moveTo(p.mouseX, p.mouseY);
     return true;
   }
   
   return false;
 }
 
-export function handleCopyBrushPointerUp(p) {
+export function handleCopyBrushMouseReleased(p) {
   if (!isCopyBrushActive) return false;
   
   if (currentCopyLoop && !currentCopyLoop.isClosed) {
-    // Complete the loop by adding the first point again
-    if (currentCopyLoop.points.length > 2) {
-      currentCopyLoop.isClosed = true;
-      
-      // Create copy of objects inside the loop
-      createCopyOfObjectsInsideLoop(p);
-      
-      // Start dragging the copy
-      isDraggingCopy = true;
-    }
+    // Complete the loop
+    closeSelectionLoop(currentCopyLoop);
     
-    // Clear the loop
-    currentCopyLoop = null;
+    if (currentCopyLoop.isClosed) {
+      // Create copy template from objects inside the loop
+      createCopyTemplate(p);
+      
+      // Hide the loop once completed
+      hideSelectionLoop(currentCopyLoop);
+      
+      // Create the first copy and start dragging
+      createNewCopyFromTemplate(p);
+      isDraggingCopy = true;
+      isPlacingNewCopy = true; // Mark as a new copy being placed
+    } else {
+      // Clear the loop if it wasn't successfully closed (too few points)
+      currentCopyLoop = null;
+    }
     
     return true;
   }
@@ -97,94 +142,43 @@ export function handleCopyBrushPointerUp(p) {
   return false;
 }
 
-function createCopyOfObjectsInsideLoop(p) {
+function createCopyTemplate(p) {
   if (!currentCopyLoop || !currentCopyLoop.isClosed) return;
   
+  // Find objects inside the loop
   const objectsToGroup = [];
+  const objectsInside = findObjectsInsideLoop(currentCopyLoop, window.movableObjects);
   
-  // Check each object if it's inside the loop
-  for (let obj of window.movableObjects) {
-    let isInside = false;
-    
-    if (obj.type === "circle") {
-      isInside = isPointInPolygon(obj.x, obj.y, currentCopyLoop.points);
-    } else if (obj.type === "square") {
-      isInside = isPointInPolygon(obj.x, obj.y, currentCopyLoop.points);
-    } else if (obj.type === "triangle") {
-      isInside = isPointInPolygon(obj.x, obj.y, currentCopyLoop.points);
-    } else if (obj.type === "stroke") {
-      // For strokes, check if most points are inside
-      let pointsInside = 0;
-      for (let point of obj.points) {
-        if (isPointInPolygon(point.x, point.y, currentCopyLoop.points)) {
-          pointsInside++;
-        }
-      }
-      isInside = pointsInside > obj.points.length / 2;
-    } else if (obj.type === "group") {
-      // For groups, check if the center is inside
-      isInside = isPointInPolygon(obj.x, obj.y, currentCopyLoop.points);
-    }
-    
-    if (isInside) {
-      // Create a deep copy of the object
-      const copy = JSON.parse(JSON.stringify(obj));
-      objectsToGroup.push(copy);
-    }
+  // Exit if no objects found
+  if (objectsInside.length === 0) {
+    return;
   }
   
-  // If we found objects inside the loop, create a group
-  if (objectsToGroup.length > 0) {
-    const groupObj = new GroupObject(objectsToGroup);
-    
-    // Store relative positions for dragging
-    groupObj.storeRelativePositions();
-    
-    // Set the copy selection to this grouped object
-    copySelection = groupObj;
+  // Create deep copies of the objects for the template
+  for (let obj of objectsInside) {
+    const copy = JSON.parse(JSON.stringify(obj));
+    objectsToGroup.push(copy);
   }
+  
+  // Create a template group
+  copyTemplate = new GroupObject(objectsToGroup);
+  copyTemplate.storeRelativePositions();
 }
 
-// Function to check if a point is inside a polygon (the copy loop)
-function isPointInPolygon(x, y, polygon) {
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i].x, yi = polygon[i].y;
-    const xj = polygon[j].x, yj = polygon[j].y;
-    
-    const intersect = ((yi > y) !== (yj > y)) && 
-      (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-    
-    if (intersect) inside = !inside;
-  }
+function createNewCopyFromTemplate(p) {
+  if (!copyTemplate) return;
   
-  return inside;
+  // Clone the template to create a new copy
+  copySelection = copyTemplate.clone();
+  
+  // Position at mouse cursor
+  copySelection.moveTo(p.mouseX, p.mouseY);
 }
 
 export function drawCopyBrushElements(p) {
-  // Draw the current copy loop with dashed lines
-  if (currentCopyLoop) {
-    p.push();
-    p.stroke(255, 0, 0);
-    p.strokeWeight(2);
-    p.noFill();
-    
-    // Draw dashed line
-    p.drawingContext.setLineDash([5, 5]);
-    
-    p.beginShape();
-    for (let point of currentCopyLoop.points) {
-      p.vertex(point.x, point.y);
-    }
-    
-    if (currentCopyLoop.isClosed) {
-      p.endShape(p.CLOSE);
-    } else {
-      p.endShape();
-    }
-    
-    p.drawingContext.setLineDash([]);
-    p.pop();
+  // Draw the current copy loop with dashed lines if active
+  if (currentCopyLoop && currentCopyLoop.isActive) {
+    drawSelectionLoop(p, currentCopyLoop, p.color(255, 0, 0)); // Red for copy brush
   }
   
   // Draw the current selection being dragged

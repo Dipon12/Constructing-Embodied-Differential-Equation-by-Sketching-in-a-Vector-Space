@@ -29,12 +29,18 @@ export function activatePencilTool() {
 export function handlePencilPointerDown(p) {
   if (!window.drawing) return false;
   
+  // Only start drawing if pointer is outside the sidebar
+  if (p.pointerX <= 200) return false;
+  
   window.currentStroke = { type: "stroke", points: [{ x: p.pointerX, y: p.pointerY }] };
   return true;
 }
 
 export function handlePencilPointerMove(p) {
   if (!window.drawing || !window.currentStroke) return false;
+  
+  // Only continue drawing if pointer is outside the sidebar
+  if (p.pointerX <= 200) return true; // Return true to still handle the event
   
   window.currentStroke.points.push({ x: p.pointerX, y: p.pointerY });
   return true;
@@ -43,8 +49,12 @@ export function handlePencilPointerMove(p) {
 export function handlePencilPointerUp(p) {
   if (!window.drawing || !window.currentStroke) return false;
   
-  // Add the completed stroke to movable objects
-  window.movableObjects.push(window.currentStroke);
+  // Only add the stroke if it has at least 2 points
+  if (window.currentStroke.points.length >= 2) {
+    // Add the completed stroke to movable objects
+    window.movableObjects.push(window.currentStroke);
+  }
+  
   window.currentStroke = null;
   return true;
 }
